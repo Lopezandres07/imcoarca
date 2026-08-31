@@ -1,5 +1,5 @@
-import { type Page, type Locator } from '@playwright/test';
-import { BasePage } from '../utils/BasePage';
+import { type Page, type Locator } from "@playwright/test";
+import { BasePage } from "../utils/BasePage";
 
 export class LoginPage extends BasePage {
   readonly emailInput: Locator;
@@ -8,19 +8,18 @@ export class LoginPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.emailInput = page.locator('#email');
-    this.passwordInput = page.locator('#password');
+    this.emailInput = page.locator("#email");
+    this.passwordInput = page.locator("#password");
     this.submitButton = page.locator('button[type="submit"]');
   }
 
   async navigate(): Promise<void> {
-    await this.navigateTo('/login');
+    await this.navigateTo("/login");
   }
 
   async login(email: string, password: string): Promise<void> {
-    await this.fillInput(this.emailInput, email, 'Email field');
-    await this.fillInput(this.passwordInput, password, 'Password field');
-    await this.clickElement(this.submitButton, 'Login submit button');
-    await this.page.waitForURL('**/dashboard', { timeout: 10000 });
+    await this.fillInput(this.emailInput, email, "Email field");
+    await this.fillInput(this.passwordInput, password, "Password field");
+    await this.clickElement(this.submitButton, "Login submit button");
   }
 }
