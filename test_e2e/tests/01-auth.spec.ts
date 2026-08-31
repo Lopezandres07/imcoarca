@@ -1,12 +1,14 @@
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
+import { test, expect } from "@playwright/test";
+import { LoginPage } from "../pages/LoginPage";
+import dotenv from "dotenv";
+dotenv.config();
 
-const ADMIN_EMAIL = 'tae@testing.com';
-const ADMIN_PASSWORD = 'Tae@2026';
-const SELLER_EMAIL = 'vendedor@testing.com';
-const SELLER_PASSWORD = 'Tae@2026';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL as string;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD as string;
+const SELLER_EMAIL = process.env.SELLER_EMAIL as string;
+const SELLER_PASSWORD = process.env.SELLER_PASSWORD as string;
 
-test.describe('Auth Module', () => {
+test.describe("Auth Module", () => {
   let loginPage: LoginPage;
 
   test.beforeEach(async ({ page }) => {
@@ -14,13 +16,13 @@ test.describe('Auth Module', () => {
     await loginPage.navigate();
   });
 
-  test('Valid Login with Admin', async ({ page }) => {
+  test("Valid Login with Admin", async ({ page }) => {
     await loginPage.login(ADMIN_EMAIL, ADMIN_PASSWORD);
     await expect(page).toHaveURL(/.*dashboard/);
   });
 
-  test('Valid Login with Seller', async ({ page }) => {
+  test("Valid Login with Seller", async ({ page }) => {
     await loginPage.login(SELLER_EMAIL, SELLER_PASSWORD);
     await expect(page).toHaveURL(/.*dashboard/);
   });
-}); 
+});

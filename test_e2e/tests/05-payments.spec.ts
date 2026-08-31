@@ -1,15 +1,17 @@
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
-import { ClientPage, type ClientData } from '../pages/ClientPage';
-import { ArticlePage, type ArticleData } from '../pages/ArticlePage';
-import { InvoicePage } from '../pages/InvoicePage';
-import { PaymentPage } from '../pages/PaymentPage';
-import { DataHelper } from '../utils/DataHelper';
+import { test, expect } from "@playwright/test";
+import { LoginPage } from "../pages/LoginPage";
+import { ClientPage, type ClientData } from "../pages/ClientPage";
+import { ArticlePage, type ArticleData } from "../pages/ArticlePage";
+import { InvoicePage } from "../pages/InvoicePage";
+import { PaymentPage } from "../pages/PaymentPage";
+import { DataHelper } from "../utils/DataHelper";
+import dotenv from "dotenv";
+dotenv.config();
 
-const ADMIN_EMAIL = 'tae@testing.com';
-const ADMIN_PASSWORD = 'Tae@2026';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL as string;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD as string;
 
-test.describe('Payments Module', () => {
+test.describe("Payments Module", () => {
   let loginPage: LoginPage;
   let clientPage: ClientPage;
   let articlePage: ArticlePage;
@@ -25,14 +27,14 @@ test.describe('Payments Module', () => {
     clientPage = new ClientPage(page);
     articlePage = new ArticlePage(page);
     invoicePage = new InvoicePage(page);
-    
+
     await loginPage.navigate();
     await loginPage.login(ADMIN_EMAIL, ADMIN_PASSWORD);
 
     const clientData = {
       fullName: DataHelper.generateClientName(),
       cuit: DataHelper.generateCUIT(),
-      email: DataHelper.generateEmail()
+      email: DataHelper.generateEmail(),
     };
     await clientPage.navigate();
     await clientPage.createClient(clientData);
@@ -41,7 +43,7 @@ test.describe('Payments Module', () => {
       name: DataHelper.generateArticleName(),
       sku: DataHelper.generateSKU(),
       salePrice: DataHelper.generatePrice(),
-      stock: DataHelper.generateStock()
+      stock: DataHelper.generateStock(),
     };
     await articlePage.navigate();
     await articlePage.createArticle(articleData);
@@ -52,7 +54,7 @@ test.describe('Payments Module', () => {
     generatedInvoiceId = await invoicePage.createInvoice({
       clientName: clientData.fullName,
       articleName: articleData.name,
-      quantity: '1'
+      quantity: "1",
     });
 
     await page.close();
@@ -65,16 +67,16 @@ test.describe('Payments Module', () => {
     await loginPage.login(ADMIN_EMAIL, ADMIN_PASSWORD);
   });
 
-  test('Process Payment for an Invoice', async () => {
-    await test.step('Navigate to Payments module', async () => {
+  test("Process Payment for an Invoice", async () => {
+    await test.step("Navigate to Payments module", async () => {
       await paymentPage.navigate();
     });
 
-    await test.step('Process Payment', async () => {
+    await test.step("Process Payment", async () => {
       await paymentPage.processPayment({
         invoiceId: generatedInvoiceId,
         amount: invoiceAmount,
-        paymentMethod: 'Efectivo'
+        paymentMethod: "Efectivo",
       });
     });
   });

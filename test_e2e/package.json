@@ -17,5 +17,8 @@
     "allure-commandline": "^2.43.0",
     "allure-playwright": "^3.11.0",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
   }
 }

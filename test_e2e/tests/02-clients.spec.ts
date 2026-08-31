@@ -1,12 +1,14 @@
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
-import { ClientPage, type ClientData } from '../pages/ClientPage';
-import { DataHelper } from '../utils/DataHelper';
+import { test, expect } from "@playwright/test";
+import { LoginPage } from "../pages/LoginPage";
+import { ClientPage, type ClientData } from "../pages/ClientPage";
+import { DataHelper } from "../utils/DataHelper";
+import dotenv from "dotenv";
+dotenv.config();
 
-const ADMIN_EMAIL = 'tae@testing.com';
-const ADMIN_PASSWORD = 'Tae@2026';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL as string;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD as string;
 
-test.describe('Clients Module', () => {
+test.describe("Clients Module", () => {
   let loginPage: LoginPage;
   let clientPage: ClientPage;
 
@@ -17,14 +19,14 @@ test.describe('Clients Module', () => {
     await loginPage.login(ADMIN_EMAIL, ADMIN_PASSWORD);
   });
 
-  test('Create and verify client persistence', async () => {
+  test("Create and verify client persistence", async () => {
     const clientData: ClientData = {
       fullName: DataHelper.generateClientName(),
       cuit: DataHelper.generateCUIT(),
-      email: DataHelper.generateEmail()
+      email: DataHelper.generateEmail(),
     };
 
-    await test.step('Navigate to Clients module', async () => {
+    await test.step("Navigate to Clients module", async () => {
       await clientPage.navigate();
     });
 
@@ -32,7 +34,7 @@ test.describe('Clients Module', () => {
       await clientPage.createClient(clientData);
     });
 
-    await test.step('Search and verify client persistence', async () => {
+    await test.step("Search and verify client persistence", async () => {
       await clientPage.navigate();
       await clientPage.searchClient(clientData.fullName);
       const isVisible = await clientPage.isClientVisible(clientData.fullName);

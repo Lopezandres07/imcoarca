@@ -1,15 +1,17 @@
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
-import { ArticlePage, type ArticleData } from '../pages/ArticlePage';
-import { ClientPage, type ClientData } from '../pages/ClientPage';
-import { InvoicePage } from '../pages/InvoicePage';
-import { PaymentPage } from '../pages/PaymentPage';
-import { DataHelper } from '../utils/DataHelper';
+import { test, expect } from "@playwright/test";
+import { LoginPage } from "../pages/LoginPage";
+import { ArticlePage, type ArticleData } from "../pages/ArticlePage";
+import { ClientPage, type ClientData } from "../pages/ClientPage";
+import { InvoicePage } from "../pages/InvoicePage";
+import { PaymentPage } from "../pages/PaymentPage";
+import { DataHelper } from "../utils/DataHelper";
+import dotenv from "dotenv";
+dotenv.config();
 
-const ADMIN_EMAIL = 'tae@testing.com';
-const ADMIN_PASSWORD = 'Tae@2026';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL as string;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD as string;
 
-test.describe('E2E Lifecycle — Data Persistence & Transactional Flow', () => {
+test.describe("E2E Lifecycle — Data Persistence & Transactional Flow", () => {
   let loginPage: LoginPage;
 
   test.beforeEach(async ({ page }) => {
@@ -18,7 +20,9 @@ test.describe('E2E Lifecycle — Data Persistence & Transactional Flow', () => {
     await loginPage.login(ADMIN_EMAIL, ADMIN_PASSWORD);
   });
 
-  test('Full Transaction Lifecycle: Client -> Article -> Invoice -> Payment', async ({ page }) => {
+  test("Full Transaction Lifecycle: Client -> Article -> Invoice -> Payment", async ({
+    page,
+  }) => {
     const clientPage = new ClientPage(page);
     const articlePage = new ArticlePage(page);
     const invoicePage = new InvoicePage(page);
@@ -27,17 +31,17 @@ test.describe('E2E Lifecycle — Data Persistence & Transactional Flow', () => {
     const clientData: ClientData = {
       fullName: DataHelper.generateClientName(),
       cuit: DataHelper.generateCUIT(),
-      email: DataHelper.generateEmail()
+      email: DataHelper.generateEmail(),
     };
 
     const articleData: ArticleData = {
       name: DataHelper.generateArticleName(),
       sku: DataHelper.generateSKU(),
       salePrice: DataHelper.generatePrice(),
-      stock: DataHelper.generateStock()
+      stock: DataHelper.generateStock(),
     };
 
-    let generatedInvoiceId = '';
+    let generatedInvoiceId = "";
 
     await test.step(`[Step 1] Create dynamic Client: ${clientData.fullName}`, async () => {
       await clientPage.navigate();
@@ -54,9 +58,9 @@ test.describe('E2E Lifecycle — Data Persistence & Transactional Flow', () => {
       generatedInvoiceId = await invoicePage.createInvoice({
         clientName: clientData.fullName,
         articleName: articleData.name,
-        quantity: '1'
+        quantity: "1",
       });
-      
+
       expect(generatedInvoiceId).toBeTruthy();
     });
 
@@ -65,7 +69,7 @@ test.describe('E2E Lifecycle — Data Persistence & Transactional Flow', () => {
       await paymentPage.processPayment({
         invoiceId: generatedInvoiceId,
         amount: articleData.salePrice,
-        paymentMethod: 'Efectivo'
+        paymentMethod: "Efectivo",
       });
     });
   });

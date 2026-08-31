@@ -1,12 +1,14 @@
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
-import { ArticlePage, type ArticleData } from '../pages/ArticlePage';
-import { DataHelper } from '../utils/DataHelper';
+import { test, expect } from "@playwright/test";
+import { LoginPage } from "../pages/LoginPage";
+import { ArticlePage, type ArticleData } from "../pages/ArticlePage";
+import { DataHelper } from "../utils/DataHelper";
+import dotenv from "dotenv";
+dotenv.config();
 
-const ADMIN_EMAIL = 'tae@testing.com';
-const ADMIN_PASSWORD = 'Tae@2026';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL as string;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD as string;
 
-test.describe('Articles Module', () => {
+test.describe("Articles Module", () => {
   let loginPage: LoginPage;
   let articlePage: ArticlePage;
 
@@ -17,15 +19,15 @@ test.describe('Articles Module', () => {
     await loginPage.login(ADMIN_EMAIL, ADMIN_PASSWORD);
   });
 
-  test('Create and verify article persistence', async () => {
+  test("Create and verify article persistence", async () => {
     const articleData: ArticleData = {
       name: DataHelper.generateArticleName(),
       sku: DataHelper.generateSKU(),
       salePrice: DataHelper.generatePrice(),
-      stock: DataHelper.generateStock()
+      stock: DataHelper.generateStock(),
     };
 
-    await test.step('Navigate to Articles module', async () => {
+    await test.step("Navigate to Articles module", async () => {
       await articlePage.navigate();
     });
 
@@ -33,7 +35,7 @@ test.describe('Articles Module', () => {
       await articlePage.createArticle(articleData);
     });
 
-    await test.step('Search and verify article persistence', async () => {
+    await test.step("Search and verify article persistence", async () => {
       await articlePage.navigate();
       await articlePage.searchArticle(articleData.name);
       const isVisible = await articlePage.isArticleVisible(articleData.name);
