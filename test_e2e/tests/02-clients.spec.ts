@@ -25,21 +25,25 @@ test.describe("Clients Module", () => {
       cuit: DataHelper.generateCUIT(),
       email: DataHelper.generateEmail(),
       phone: DataHelper.generatePhone(),
-      contact: '',
-      field: '',
-      zone: '',
-      exportLaw: ''
+      contact: DataHelper.generateContact(),
+      field: "Alimentos",
+      zone: "8",
+      exportLaw: "1",
     };
+
+    let email = clientData.email;
 
     await test.step("Navigate to Clients module", async () => {
       await clientPage.navigate();
     });
 
-    await test.step(`Create client: ${clientData.fullName}`, async () => {  
+    await test.step(`Open new client form`, async () => {
       await clientPage.goToCreateForm();
 
-      await expect(clientPage.page).toHaveURL(/.*nuevo/)
+      await expect(clientPage.page).toHaveURL(/.*nuevo/);
+    });
 
+    await test.step(`Create client`, async () => {
       await clientPage.createClient(clientData);
 
       await expect(clientPage.successToast).toBeVisible();
@@ -47,9 +51,9 @@ test.describe("Clients Module", () => {
 
     await test.step("Search and verify client persistence", async () => {
       await clientPage.navigate();
-      await clientPage.searchClient(clientData.fullName);
-      
-      await expect(clientPage.getClientRow(clientData.fullName)).toBeVisible();
+      await clientPage.searchClient(email);
+
+      await expect(clientPage.getClientRow(clientData.email)).toBeVisible();
     });
   });
 });

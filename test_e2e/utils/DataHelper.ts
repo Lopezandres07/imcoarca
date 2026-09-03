@@ -4,9 +4,9 @@ export class DataHelper {
   }
 
   static generateSKU(): string {
-    const seg1 = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
-    const seg2 = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
-    const seg3 = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+    const seg1 = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+    const seg2 = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+    const seg3 = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
     return `${seg1}.${seg2}.${seg3}`;
   }
 
@@ -30,6 +30,10 @@ export class DataHelper {
 
   static generateEmail(): string {
     return `test.client.${Date.now()}@automation.test`;
+  }
+
+  static generateContact(): string {
+    return `test.client.${Date.now()}`;
   }
 
   static generatePhone(): string {
