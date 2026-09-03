@@ -1,0 +1,10 @@
+name: QA
+variables:
+  - name: baseUrl
+    value: https://back-imcoarca.leonardojose.dev
+  - name: token
+    value: 705|srKSBrwpqF9mqejD0wthOfQYkOXQUMpc926626W1d9162b40
+  - name: clienteId
+    value:
+      type: number
+      data: "19115"
