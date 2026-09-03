@@ -24,21 +24,32 @@ test.describe("Clients Module", () => {
       fullName: DataHelper.generateClientName(),
       cuit: DataHelper.generateCUIT(),
       email: DataHelper.generateEmail(),
+      phone: DataHelper.generatePhone(),
+      contact: '',
+      field: '',
+      zone: '',
+      exportLaw: ''
     };
 
     await test.step("Navigate to Clients module", async () => {
       await clientPage.navigate();
     });
 
-    await test.step(`Create client: ${clientData.fullName}`, async () => {
+    await test.step(`Create client: ${clientData.fullName}`, async () => {  
+      await clientPage.goToCreateForm();
+
+      await expect(clientPage.page).toHaveURL(/.*nuevo/)
+
       await clientPage.createClient(clientData);
+
+      await expect(clientPage.successToast).toBeVisible();
     });
 
     await test.step("Search and verify client persistence", async () => {
       await clientPage.navigate();
       await clientPage.searchClient(clientData.fullName);
-      const isVisible = await clientPage.isClientVisible(clientData.fullName);
-      expect(isVisible).toBeTruthy();
+      
+      await expect(clientPage.getClientRow(clientData.fullName)).toBeVisible();
     });
   });
 });
