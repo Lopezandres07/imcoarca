@@ -5,14 +5,14 @@ export class LoginPage extends BasePage {
   readonly emailInput: Locator;
   readonly passwordInput: Locator;
   readonly submitButton: Locator;
-  readonly messageError: Locator;
+  readonly notificationMessage: Locator;
 
   constructor(page: Page) {
     super(page);
     this.emailInput = page.locator("#email");
     this.passwordInput = page.locator("#password");
     this.submitButton = page.locator('button[type="submit"]');
-    this.messageError = page.getByRole("alert");
+    this.notificationMessage = page.getByRole("alert");
   }
 
   async navigate(): Promise<void> {

@@ -27,7 +27,7 @@ test.describe("Login validation", () => {
   test("Invalid login with wrong password", async ({ page }) => {
     await loginPage.login(ADMIN_EMAIL, "wrongpassword");
     await expect(page).toHaveURL(/.*login/);
-    await expect(loginPage.messageError).toContainText(
+    await expect(loginPage.notificationMessage).toContainText(
       "Las credenciales proporcionadas son incorrectas.",
     );
   });
