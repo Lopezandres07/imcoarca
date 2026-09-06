@@ -23,10 +23,35 @@ export class DataHelper {
   }
 
   static generateCUIT(): string {
-    const body = String(Math.floor(Math.random() * 90000000) + 10000000);
-    const checkDigit = Math.floor(Math.random() * 10);
-    return `30-${body}-${checkDigit}`;
+    // 1. Prefijos válidos en Argentina (20, 23, 27 para personas; 30, 33, 34 para empresas)
+    const prefixes = [20, 23, 27, 30, 33, 34];
+    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+
+    // 2. Número de documento o base aleatorio de 8 dígitos (entre 10000000 y 99999999)
+    const body = Math.floor(Math.random() * 89999999 + 10000000).toString();
+
+    const cuitBase = `${prefix}${body}`;
+
+    // 3. Cálculo oficial del dígito verificador (Módulo 11)
+    const multipliers = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+    let suma = 0;
+
+    for (let i = 0; i < 10; i++) {
+      suma += parseInt(cuitBase[i], 10) * multipliers[i];
+    }
+
+    let verificador = 11 - (suma % 11);
+    if (verificador === 11) verificador = 0;
+    if (verificador === 10) {
+      // Si el verificador da 10, la regla AFIP exige cambiar el prefijo o reintentar. 
+      // Para simplificar, llamamos de nuevo a la función recursivamente:
+      return this.generateCUIT();
+    }
+
+    // 4. Retornamos el CUIT completo (puedes ajustarlo con guiones si tu input lo requiere: `${prefix}-${body}-${verificador}`)
+    return `${cuitBase}${verificador}`;
   }
+
 
   static generateEmail(): string {
     return `test.client.${Date.now()}@automation.test`;

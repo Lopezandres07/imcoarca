@@ -23,7 +23,9 @@ export class ClientPage extends BasePage {
   readonly nameInput: Locator;
   readonly emailInput: Locator;
   readonly saveButton: Locator;
-  readonly successToast: Locator;
+  readonly notificationMessage: Locator;
+  readonly spinner: Locator;
+  readonly deleteButton: Locator
 
   constructor(page: Page) {
     super(page);
@@ -37,7 +39,9 @@ export class ClientPage extends BasePage {
     this.nameInput = page.locator("#name");
     this.emailInput = page.locator("#email");
     this.saveButton = page.locator('button[type="submit"]:has-text("Guardar")');
-    this.successToast = page.locator(".Toastify").locator('div[role="alert"]');
+    this.notificationMessage = page.getByRole("alert");
+    this.spinner = page.locator('.animate-spin');
+    this.deleteButton = page.getByRole('button', { name: 'Eliminar' });
   }
 
   async navigate(): Promise<void> {
@@ -48,7 +52,7 @@ export class ClientPage extends BasePage {
     await this.clickElement(this.createClientButton, "Crear Cliente button");
   }
 
-  async createClient(data: ClientData): Promise<ClientData> {
+  async createClient(data: ClientData): Promise<void> {
     await this.fillInput(
       this.nameInput,
       data.fullName,
@@ -66,7 +70,6 @@ export class ClientPage extends BasePage {
       "Ley Exportación TDF",
     );
     await this.clickElement(this.saveButton, "Guardar client form");
-    return data;
   }
 
   async searchClient(query: string): Promise<void> {
@@ -81,10 +84,16 @@ export class ClientPage extends BasePage {
     );
   }
 
+  getNotification(text: string): Locator {
+    return this.notificationMessage.filter({ hasText: text });
+  }
+
   getClientRow(email: string): Locator {
-    return this.page
-      .locator("tbody")
-      .locator(`td:has-text("${email}")`)
-      .first();
+    return this.page.getByText(email).first();
+  }
+
+  async deleteClient(): Promise<void> {
+    await this.clickElement(this.deleteButton, "Delete client button");
+    await this.clickElement(this.page.getByRole('button', { name: 'Confirmar' }), "Confirmar delete button");
   }
 }
