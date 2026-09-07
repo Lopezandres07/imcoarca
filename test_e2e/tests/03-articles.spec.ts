@@ -15,12 +15,12 @@ test.describe("Articles Module", () => {
   const articleData: ArticleData = {
     sku: DataHelper.generateSKU(),
     description: DataHelper.generateArticleName(),
-    line: '37',
+    line: "37",
     stock: DataHelper.generateStock(),
     purchasePrice: DataHelper.generatePrice(),
     salePrice: DataHelper.generatePrice(),
-    category: '53',
-    status: '1',
+    category: "53",
+    status: "1",
   };
 
   let sku = articleData.sku;
@@ -41,19 +41,29 @@ test.describe("Articles Module", () => {
       await expect(articlePage.page).toHaveURL(/.*articulos/);
     });
 
+    await test.step("Open new article form", async () => {
+      await articlePage.goToCreateForm();
+
+      await expect(articlePage.page).toHaveURL(/.*nuevo/);
+    });
+
     await test.step("Create article", async () => {
       await articlePage.createArticle(articleData);
+
+      await expect(articlePage.page).toHaveURL(/.*articulos/);
+      await expect(articlePage.getNotification("Artículo guardado con éxito!")).toBeVisible();
     });
 
     await test.step("Search and verify article persistence", async () => {
-      await articlePage.navigate();
-      await articlePage.searchArticle(articleData.description);
-      const isVisible = await articlePage.isArticleVisible(articleData.description);
-      expect(isVisible).toBeTruthy();
+      await articlePage.searchArticle(sku);
+
+      await expect(articlePage.spinner).toBeHidden()
+      await expect(articlePage.getArticleRow(sku)).toHaveText(sku);
     });
 
-    /*  await test.step("Delete article", async () => {
-       await articlePage.deleteArticle();
-     }); */
+    await test.step("Delete article and verify cleanup", async () => {
+      await articlePage.deleteArticle();
+      await expect(articlePage.getNotification("Artículo eliminado con éxito.")).toBeVisible();
+    });
   });
 });

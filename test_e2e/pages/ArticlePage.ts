@@ -23,48 +23,69 @@ export class ArticlePage extends BasePage {
   readonly categorySelect: Locator;
   readonly statusSelect: Locator;
   readonly saveButton: Locator;
-  readonly successToast: Locator;
+  readonly notificationMessage: Locator;
+  readonly spinner: Locator;
+  readonly deleteButton: Locator;
 
   constructor(page: Page) {
     super(page);
     this.createArticleButton = page.locator('button:has-text("Crear Artículo")');
     this.skuInput = page.locator('#sku');
-    this.descriptionInput = page.locator('#description');
+    this.descriptionInput = page.locator('#name');
     this.lineSelect = page.locator('#line');
     this.purchasePriceInput = page.locator('#purchase_price');
     this.salePriceInput = page.locator('#sale_price');
-    this.stockInput = page.locator('#stock');
+    this.stockInput = page.locator('#stock_quantity');
     this.categorySelect = page.locator('#category');
     this.statusSelect = page.locator('#is_active');
     this.saveButton = page.locator('button[type="submit"]:has-text("Guardar")');
-    this.successToast = page.locator('.Toastify').locator('div[role="alert"]');
+    this.notificationMessage = page.getByRole("alert");
+    this.spinner = page.locator('.animate-spin');
+    this.deleteButton = page.getByRole('button', { name: 'Eliminar' });
   }
 
   async navigate(): Promise<void> {
     await this.navigateTo('/articulos');
   }
 
+  async goToCreateForm(): Promise<void> {
+    await this.clickElement(this.createArticleButton, "Crear Artículo button");
+  }
+
   async createArticle(data: ArticleData): Promise<void> {
-    await this.clickElement(this.createArticleButton, 'Crear Artículo button');
     await this.fillInput(this.skuInput, data.sku, 'SKU');
     await this.fillInput(this.descriptionInput, data.description, 'Descripción');
     await this.selectOption(this.lineSelect, data.line, 'Línea');
-    await this.fillInput(this.stockInput, data.stock, 'Stock');
-    await this.fillInput(this.purchasePriceInput, data.purchasePrice, 'Precio de Compra');
-    await this.fillInput(this.salePriceInput, data.salePrice, 'Precio de Venta');
     await this.selectOption(this.categorySelect, data.category, 'Categoría');
     await this.selectOption(this.statusSelect, data.status, 'Estado');
+    await this.fillInput(this.salePriceInput, data.salePrice, 'Precio de Venta');
+    await this.fillInput(this.purchasePriceInput, data.purchasePrice, 'Precio de Compra');
+    await this.fillInput(this.stockInput, data.stock, 'Stock');
     await this.clickElement(this.saveButton, 'Guardar article form');
   }
 
-  async searchArticle(query: string): Promise<void> {
-    await this.fillInput(this.page.locator('input[placeholder*="Buscar"], input[type="search"]').first(), query, 'Article search input');
-    await this.clickElement(this.page.locator('button:has-text("Buscar")'), 'Buscar button');
-    await this.page.waitForLoadState('networkidle');
+  getNotification(text: string): Locator {
+    return this.notificationMessage.filter({ hasText: text });
   }
 
-  async isArticleVisible(name: string): Promise<boolean> {
-    await this.page.waitForTimeout(1000);
-    return this.page.locator('tbody').locator(`td:has-text("${name}")`).first().isVisible();
+  getArticleRow(sku: string): Locator {
+    return this.page.getByText(sku).first();
+  }
+
+  async searchArticle(query: string): Promise<void> {
+    await this.fillInput(
+      this.page.locator("#search-term"),
+      query,
+      "Article search input",
+    );
+    await this.clickElement(
+      this.page.locator('button:has-text("Buscar")'),
+      "Buscar button",
+    );
+  }
+
+  async deleteArticle(): Promise<void> {
+    await this.clickElement(this.deleteButton, "Delete article button");
+    await this.clickElement(this.page.getByRole('button', { name: 'Confirmar' }), "Confirmar delete button");
   }
 }
