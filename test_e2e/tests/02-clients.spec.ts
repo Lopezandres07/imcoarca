@@ -32,6 +32,7 @@ test.describe("Clients Module", () => {
     await loginPage.login(ADMIN_EMAIL, ADMIN_PASSWORD);
 
     await expect(page).toHaveURL(/.*dashboard/);
+    await expect(loginPage.pageDashboardTitle).toBeVisible()
   });
 
   test("Create, verify and delete client", async () => {

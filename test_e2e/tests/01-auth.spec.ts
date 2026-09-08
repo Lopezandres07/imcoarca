@@ -20,6 +20,7 @@ test.describe("Login validation", () => {
     await loginPage.login(ADMIN_EMAIL, ADMIN_PASSWORD);
 
     await expect(page).toHaveURL(/.*dashboard/);
+    await expect(loginPage.pageDashboardTitle).toBeVisible()
   });
 
   test("Valid Login with Seller", async ({ page }) => {
