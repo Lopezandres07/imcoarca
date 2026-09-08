@@ -2,9 +2,11 @@ import { type Page, type Locator, test } from "@playwright/test";
 
 export abstract class BasePage {
   readonly page: Page;
+  readonly pageDashboardTitle: Locator
 
   constructor(page: Page) {
     this.page = page;
+    this.pageDashboardTitle = page.getByRole('heading', { name: 'Dashboard' });
   }
 
   async clickElement(locator: Locator, description: string): Promise<void> {
@@ -29,6 +31,12 @@ export abstract class BasePage {
     description: string,
   ): Promise<void> {
     await test.step(`Select "${value}" in: ${description}`, async () => {
+      await locator
+        .locator('option:not([value=""])')
+        .first()
+        .waitFor({ state: "attached", timeout: 5000 })
+        .catch(() => { });
+
       await locator.selectOption(value);
     });
   }
@@ -58,7 +66,8 @@ export abstract class BasePage {
   async navigateTo(path: string): Promise<void> {
     await test.step(`Navigate to: ${path}`, async () => {
       await this.page.goto(path);
-      await this.page.waitForLoadState("networkidle");
+      // Reemplazamos networkidle por domcontentloaded para evitar bloqueos por polling/sockets
+      await this.page.waitForLoadState("domcontentloaded");
     });
   }
 }
