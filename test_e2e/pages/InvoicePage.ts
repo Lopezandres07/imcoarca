@@ -1,6 +1,24 @@
 import { type Page, type Locator } from '@playwright/test';
 import { BasePage } from '../utils/BasePage';
 
+/* 
+Campos obligatorios en el formulario:
+
+Cliente
+Vendedor
+Moneda
+
+Campos visuales en la tabla:
+
+Nº Factura
+Fecha
+Cliente
+Pedido Orig.
+Total
+Estado
+*/
+
+
 export interface InvoicePayload {
   clientName: string;
   articleName: string;
@@ -40,7 +58,7 @@ export class InvoicePage extends BasePage {
 
   async createInvoice(payload: InvoicePayload): Promise<string> {
     await this.clickElement(this.createInvoiceButton, 'Crear Factura button');
-    
+
     // Select Client
     await this.waitForVisibility(this.clientSearchInput, 'Client search input');
     await this.fillInput(this.clientSearchInput, payload.clientName, 'Client search');
@@ -51,28 +69,28 @@ export class InvoicePage extends BasePage {
     await this.fillInput(this.articleSearchInput, payload.articleName, 'Article search');
     await this.page.waitForTimeout(1000); // Wait for debounce/search
     await this.clickElement(this.articleOption.filter({ hasText: payload.articleName }).first(), `Select article: ${payload.articleName}`);
-    
+
     if (await this.quantityInput.isVisible()) {
-        await this.fillInput(this.quantityInput, payload.quantity, 'Quantity');
+      await this.fillInput(this.quantityInput, payload.quantity, 'Quantity');
     }
-    
+
     if (await this.addArticleButton.isVisible()) {
-        await this.clickElement(this.addArticleButton, 'Agregar artículo');
+      await this.clickElement(this.addArticleButton, 'Agregar artículo');
     }
 
     // Save
     await this.clickElement(this.saveInvoiceButton, 'Guardar Factura');
     await this.waitForVisibility(this.successToast, 'Success notification');
-    
+
     // Extract ID (Fallback to a dummy if we can't reliably get it from DOM yet without real inspection)
     let invoiceId = `INV-${Date.now()}`;
     try {
-        if (await this.generatedInvoiceId.isVisible({ timeout: 2000 })) {
-             const text = await this.generatedInvoiceId.textContent();
-             if (text) invoiceId = text.replace('Factura #', '').trim();
-        }
+      if (await this.generatedInvoiceId.isVisible({ timeout: 2000 })) {
+        const text = await this.generatedInvoiceId.textContent();
+        if (text) invoiceId = text.replace('Factura #', '').trim();
+      }
     } catch (e) {
-        // Proceed with fallback
+      // Proceed with fallback
     }
 
     return invoiceId;
