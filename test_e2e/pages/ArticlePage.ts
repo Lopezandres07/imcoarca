@@ -1,4 +1,4 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Page, type Locator, expect } from '@playwright/test';
 import { BasePage } from '../utils/BasePage';
 
 export interface ArticleData {
@@ -13,7 +13,9 @@ export interface ArticleData {
 }
 
 export class ArticlePage extends BasePage {
+  readonly pageTitle: Locator
   readonly createArticleButton: Locator;
+  readonly pageNewArticleTitle: Locator
   readonly skuInput: Locator;
   readonly descriptionInput: Locator;
   readonly lineSelect: Locator;
@@ -26,10 +28,13 @@ export class ArticlePage extends BasePage {
   readonly notificationMessage: Locator;
   readonly spinner: Locator;
   readonly deleteButton: Locator;
+  readonly confirmDeleteButton: Locator
 
   constructor(page: Page) {
     super(page);
+    this.pageTitle = page.getByRole('heading', { name: 'Artículos' });
     this.createArticleButton = page.locator('button:has-text("Crear Artículo")');
+    this.pageNewArticleTitle = page.getByRole('heading', { name: 'Crear Nuevo Artículo' });
     this.skuInput = page.locator('#sku');
     this.descriptionInput = page.locator('#name');
     this.lineSelect = page.locator('#line');
@@ -42,6 +47,7 @@ export class ArticlePage extends BasePage {
     this.notificationMessage = page.getByRole("alert");
     this.spinner = page.locator('.animate-spin');
     this.deleteButton = page.getByRole('button', { name: 'Eliminar' });
+    this.confirmDeleteButton = page.getByRole('button', { name: 'Confirmar' });
   }
 
   async navigate(): Promise<void> {
@@ -86,6 +92,7 @@ export class ArticlePage extends BasePage {
 
   async deleteArticle(): Promise<void> {
     await this.clickElement(this.deleteButton, "Delete article button");
-    await this.clickElement(this.page.getByRole('button', { name: 'Confirmar' }), "Confirmar delete button");
+    await this.confirmDeleteButton.waitFor({ state: 'visible' });
+    await this.clickElement(this.confirmDeleteButton, "Confirmar delete button");
   }
 }

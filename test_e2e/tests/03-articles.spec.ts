@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { BasePage } from "@utils/BasePage";
 import { LoginPage } from "../pages/LoginPage";
 import { ArticlePage, type ArticleData } from "../pages/ArticlePage";
 import { DataHelper } from "../utils/DataHelper";
@@ -28,10 +29,12 @@ test.describe("Articles Module", () => {
   test.beforeEach(async ({ page }) => {
     loginPage = new LoginPage(page);
     articlePage = new ArticlePage(page);
+
     await loginPage.navigate();
     await loginPage.login(ADMIN_EMAIL, ADMIN_PASSWORD);
 
     await expect(page).toHaveURL(/.*dashboard/);
+    await expect(loginPage.pageDashboardTitle).toBeVisible()
   });
 
   test("Create,verify and delete article", async () => {
@@ -39,12 +42,14 @@ test.describe("Articles Module", () => {
       await articlePage.navigate();
 
       await expect(articlePage.page).toHaveURL(/.*articulos/);
+      await expect(articlePage.pageTitle).toBeVisible()
     });
 
     await test.step("Open new article form", async () => {
       await articlePage.goToCreateForm();
 
       await expect(articlePage.page).toHaveURL(/.*nuevo/);
+      await expect(articlePage.pageNewArticleTitle).toBeVisible()
     });
 
     await test.step("Create article", async () => {
