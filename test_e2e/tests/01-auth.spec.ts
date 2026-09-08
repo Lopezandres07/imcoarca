@@ -16,16 +16,20 @@ test.describe("Login validation", () => {
 
   test("Valid Login with Admin", async ({ page }) => {
     await loginPage.login(ADMIN_EMAIL, ADMIN_PASSWORD);
+
     await expect(page).toHaveURL(/.*dashboard/);
   });
 
   test("Valid Login with Seller", async ({ page }) => {
     await loginPage.login(SELLER_EMAIL, SELLER_PASSWORD);
+
     await expect(page).toHaveURL(/.*dashboard/);
+    await expect(loginPage.pageDashboardTitle).toBeVisible();
   });
 
   test("Invalid login with wrong password", async ({ page }) => {
     await loginPage.login(ADMIN_EMAIL, "wrongpassword");
+
     await expect(page).toHaveURL(/.*login/);
     await expect(loginPage.notificationMessage).toContainText(
       "Las credenciales proporcionadas son incorrectas.",
