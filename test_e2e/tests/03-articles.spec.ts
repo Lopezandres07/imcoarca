@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { BasePage } from "@utils/BasePage";
 import { LoginPage } from "../pages/LoginPage";
 import { ArticlePage, type ArticleData } from "../pages/ArticlePage";
 import { DataHelper } from "../utils/DataHelper";
@@ -31,6 +30,9 @@ test.describe("Articles Module", () => {
     articlePage = new ArticlePage(page);
 
     await loginPage.navigate();
+
+    await expect(loginPage.emailInput).toBeVisible()
+
     await loginPage.login(ADMIN_EMAIL, ADMIN_PASSWORD);
 
     await expect(page).toHaveURL(/.*dashboard/);

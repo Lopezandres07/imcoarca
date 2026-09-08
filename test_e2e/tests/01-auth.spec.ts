@@ -12,6 +12,8 @@ test.describe("Login validation", () => {
   test.beforeEach(async ({ page }) => {
     loginPage = new LoginPage(page);
     await loginPage.navigate();
+
+    await expect(loginPage.emailInput).toBeVisible()
   });
 
   test("Valid Login with Admin", async ({ page }) => {
