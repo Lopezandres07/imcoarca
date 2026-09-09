@@ -52,24 +52,18 @@ export class ClientPage extends BasePage {
     await this.clickElement(this.createClientButton, "Crear Cliente button");
   }
 
-  async createClient(data: ClientData): Promise<void> {
-    await this.fillInput(
-      this.nameInput,
-      data.fullName,
-      "Nombre o Razón Social",
-    );
+  async createClient(data: ClientData): Promise<ClientData> {
+    await this.fillInput(this.nameInput, data.fullName, "Nombre o Razón Social");
     await this.fillInput(this.cuitInput, data.cuit, "CUIT");
-    await this.fillInput(this.phone, data.cuit, "Teléfono");
+    await this.fillInput(this.phone, data.phone, "Teléfono");
     await this.fillInput(this.emailInput, data.email, "Email");
     await this.fillInput(this.contact, data.contact, "Contacto");
     await this.fillInput(this.field, data.field, "Rubro");
     await this.selectOption(this.zone, data.zone, "Zona");
-    await this.selectOption(
-      this.exportLaw,
-      data.exportLaw,
-      "Ley Exportación TDF",
-    );
+    await this.selectOption(this.exportLaw, data.exportLaw, "Ley Exportación TDF");
     await this.clickElement(this.saveButton, "Guardar client form");
+
+    return data
   }
 
   async searchClient(query: string): Promise<void> {

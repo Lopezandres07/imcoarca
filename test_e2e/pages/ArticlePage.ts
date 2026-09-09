@@ -58,7 +58,7 @@ export class ArticlePage extends BasePage {
     await this.clickElement(this.createArticleButton, "Crear Artículo button");
   }
 
-  async createArticle(data: ArticleData): Promise<void> {
+  async createArticle(data: ArticleData): Promise<ArticleData> {
     await this.fillInput(this.skuInput, data.sku, 'SKU');
     await this.fillInput(this.descriptionInput, data.description, 'Descripción');
     await this.selectOption(this.lineSelect, data.line, 'Línea');
@@ -68,6 +68,8 @@ export class ArticlePage extends BasePage {
     await this.fillInput(this.purchasePriceInput, data.purchasePrice, 'Precio de Compra');
     await this.fillInput(this.stockInput, data.stock, 'Stock');
     await this.clickElement(this.saveButton, 'Guardar article form');
+
+    return data
   }
 
   getNotification(text: string): Locator {
