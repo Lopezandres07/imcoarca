@@ -1,7 +1,7 @@
 info:
-  name: 02-Create-Cliente
+  name: 05-Create-Tipo-Dato-Invalido
   type: http
-  seq: 1
+  seq: 5
 
 http:
   method: POST
@@ -17,9 +17,9 @@ http:
     type: json
     data: |-
       {
-        "name": "Cliente API Bruno Prueba",
+        "name": 12345,
         "cuit": "20-12345678-6",
-        "email": "",
+        "email": "cliente@test.com",
         "phone": "",
         "whatsapp": "",
         "cbu": null,
@@ -41,13 +41,21 @@ http:
 
 runtime:
   scripts:
-    - type: after-response
+    - type: tests
       code: |-
-        if (res.status === 201 && res.body?.data?.id) {
-          bru.setEnvVar("clienteId", res.body.data.id);
+        test("Debe responder 422 Unprocessable Entity", function () {
+            expect(res.status).to.equal(422);
+        });
 
-          console.log("clienteId guardado correctamente");
-        }
+        test("Debe informar error de validación en name", function () {
+            expect(res.body.errors).to.have.property("name");
+        });
+
+        test("Debe indicar que name debe ser un string", function () {
+            expect(res.body.errors.name[0]).to.equal(
+                "The name field must be a string."
+            );
+        });
 
 settings:
   encodeUrl: true

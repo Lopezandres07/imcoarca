@@ -1,7 +1,7 @@
 info:
-  name: Get Lista Clientes
+  name: 01-Get-Lista-Clientes
   type: http
-  seq: 2
+  seq: 1
 
 http:
   method: GET
@@ -16,6 +16,11 @@ http:
       value: asc
       type: query
   auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.body.data
+      operator: isArray
 
 settings:
   encodeUrl: true

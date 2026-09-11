@@ -1,0 +1,65 @@
+info:
+  name: 04-Create-Email-Invalido
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/clients"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+    - name: Content-Type
+      value: application/json
+    - name: Accept
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Cliente API Email Invalido",
+        "cuit": "20-12345678-6",
+        "email": "correo-invalido",
+        "phone": "",
+        "whatsapp": "",
+        "cbu": null,
+        "collection_contact": "",
+        "collection_email": "",
+        "collection_phone": "",
+        "collection_portal_password": "",
+        "collection_portal_url": "",
+        "collection_portal_username": "",
+        "estado": "Activo",
+        "serie": "",
+        "startdate": "2026-09-02",
+        "tax": "",
+        "taxes": [],
+        "zone": null,
+        "zone_name": null
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Debe responder 422 Unprocessable Entity", function () {
+            expect(res.status).to.equal(422);
+        });
+
+        test("Debe informar error de validación en email", function () {
+            expect(res.body.errors).to.have.property("email");
+        });
+
+        test("Debe indicar que el email tiene formato inválido", function () {
+            expect(res.body.errors.email[0]).to.equal(
+                "Uno o más emails no tienen un formato válido."
+            );
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

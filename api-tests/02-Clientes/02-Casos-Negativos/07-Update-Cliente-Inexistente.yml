@@ -1,0 +1,65 @@
+info:
+  name: 07-Update-Cliente-Inexistente
+  type: http
+  seq: 7
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/api/clients/99999999"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+    - name: Content-Type
+      value: application/json
+    - name: Accept
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Cliente Inexistente Actualizado",
+        "cuit": "20-12345678-6",
+        "email": "cliente@test.com",
+        "phone": "",
+        "whatsapp": "",
+        "cbu": null,
+        "collection_contact": "",
+        "collection_email": "",
+        "collection_phone": "",
+        "collection_portal_password": "",
+        "collection_portal_url": "",
+        "collection_portal_username": "",
+        "estado": "Activo",
+        "serie": "",
+        "startdate": "2026-09-02",
+        "tax": "",
+        "taxes": [],
+        "zone": null,
+        "zone_name": null
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Debe responder 404 Not Found", function () {
+            expect(res.status).to.equal(404);
+        });
+
+        test("Debe retornar un mensaje de error", function () {
+            expect(res.body).to.have.property("message");
+        });
+
+        test("Debe indicar que el cliente no existe", function () {
+            expect(res.body.message).to.include(
+                "No query results for model"
+            );
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

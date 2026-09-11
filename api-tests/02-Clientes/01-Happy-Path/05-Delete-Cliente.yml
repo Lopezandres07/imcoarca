@@ -1,10 +1,10 @@
 info:
-  name: 03-Get-Cliente
+  name: 05-Delete-Cliente
   type: http
-  seq: 2
+  seq: 5
 
 http:
-  method: GET
+  method: DELETE
   url: "{{baseUrl}}/api/clients/{{clienteId}}"
   headers:
     - name: Authorization
