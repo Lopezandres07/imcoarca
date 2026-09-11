@@ -1,0 +1,63 @@
+info:
+  name: 01-Create-sin-nombre
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/clients"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+    - name: Content-Type
+      value: application/json
+    - name: Accept
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "",
+        "cuit": "20-12345678-6",
+        "email": "",
+        "phone": "",
+        "whatsapp": "",
+        "cbu": null,
+        "collection_contact": "",
+        "collection_email": "",
+        "collection_phone": "",
+        "collection_portal_password": "",
+        "collection_portal_url": "",
+        "collection_portal_username": "",
+        "estado": "Activo",
+        "serie": "",
+        "startdate": "2026-09-02",
+        "tax": "",
+        "taxes": [],
+        "zone": null,
+        "zone_name": null
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Debe responder 422 Unprocessable Entity", function () {
+            expect(res.status).to.equal(422);
+        });
+
+        test("Debe informar error de validación en name", function () {
+            expect(res.body.errors).to.have.property("name");
+        });
+
+        test("Debe indicar que name es obligatorio", function () {
+            expect(res.body.errors.name[0]).to.equal("The name field is required.");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

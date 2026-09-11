@@ -1,0 +1,41 @@
+info:
+  name: 02-Get-Token-Invalido
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/clients?sort_direction=asc"
+  headers:
+    - name: Authorization
+      value: Bearer token_invalido_12345
+    - name: Accept
+      value: application/json
+  params:
+    - name: sort_direction
+      value: asc
+      type: query
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Debe responder 401 Unauthorized", function () {
+            expect(res.status).to.equal(401);
+        });
+
+        test("Debe retornar un mensaje de error", function () {
+            expect(res.body).to.have.property("message");
+        });
+
+        test("Debe indicar que el usuario no está autenticado", function () {
+            expect(res.body.message).to.equal("No autenticado.");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

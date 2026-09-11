@@ -1,0 +1,58 @@
+info:
+  name: 02-Login-Vendedor
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/login"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Accept
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "email": "vendedor@testing.com",
+        "password": "Tae@2026"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200 && res.body?.access_token) {
+            bru.setEnvVar("sellerToken", res.body.access_token);
+            console.log("sellerToken guardado correctamente");
+        }
+    - type: tests
+      code: |-
+        test("Debe responder 200 OK", function () {
+            expect(res.status).to.equal(200);
+        });
+
+        test("Debe retornar un access_token", function () {
+            expect(res.body).to.have.property("access_token");
+        });
+
+        test("Debe retornar token_type Bearer", function () {
+            expect(res.body.token_type).to.equal("Bearer");
+        });
+
+        test("Debe retornar el rol Vendedor", function () {
+            expect(res.body.user.roles[0].name).to.equal("Vendedor");
+        });
+
+        test("Debe tener permiso para visualizar clientes", function () {
+            expect(res.body.permissions).to.include("clientes.view");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

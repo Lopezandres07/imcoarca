@@ -1,11 +1,11 @@
 info:
-  name: 04-Update-Cliente
+  name: 02-Create-Cliente
   type: http
-  seq: 3
+  seq: 2
 
 http:
-  method: PUT
-  url: "{{baseUrl}}/api/clients/{{clienteId}}"
+  method: POST
+  url: "{{baseUrl}}/api/clients"
   headers:
     - name: Authorization
       value: Bearer {{token}}
@@ -17,7 +17,7 @@ http:
     type: json
     data: |-
       {
-        "name": "Cliente API Bruno Actualizado",
+        "name": "Cliente API Bruno Prueba",
         "cuit": "20-12345678-6",
         "email": "",
         "phone": "",
@@ -38,6 +38,23 @@ http:
         "zone_name": null
       }
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 201 && res.body?.data?.id) {
+          bru.setEnvVar("clienteId", res.body.data.id);
+
+          console.log("clienteId guardado correctamente");
+        }
+  assertions:
+    - expression: res.body.data.name
+      operator: eq
+      value: Cliente API Bruno Prueba
+    - expression: res.body.data.cuit
+      operator: eq
+      value: 20-12345678-6
 
 settings:
   encodeUrl: true
