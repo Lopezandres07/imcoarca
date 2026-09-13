@@ -10,8 +10,13 @@ export class DataHelper {
     return `${seg1}.${seg2}.${seg3}`;
   }
 
-  static generatePrice(): string {
-    return (Math.floor(Math.random() * 99000) + 1000).toFixed(2);
+  static generateCost(): string {
+    return (Math.floor(Math.random() * 49000) + 1000).toString();
+  }
+
+  static generatePrice(cost: string | number): string {
+    const numericCost = Number(cost);
+    return Math.round(numericCost * 1.35).toString();
   }
 
   static generateStock(): string {

@@ -1,93 +1,152 @@
 import { test, expect } from "@playwright/test";
 import { LoginPage } from "../pages/LoginPage";
-import { ClientPage, type ClientData } from "../pages/ClientPage";
-import { ArticlePage, type ArticleData } from "../pages/ArticlePage";
 import { InvoicePage } from "../pages/InvoicePage";
 import { DataHelper } from "../utils/DataHelper";
+import { getAuthToken } from "../utils/ApiHelper";
 import dotenv from "dotenv";
 dotenv.config();
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL as string;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD as string;
+const API_URL = process.env.API_URL as string;
 
 test.describe("Invoices Module", () => {
+  test.setTimeout(90000);
+
+  let loginPage: LoginPage;
   let invoicePage: InvoicePage;
+  let authToken: string;
+  let testClientCode: string;
+  let testClientId: number;
+  let testClientName: string
+  let testArticleCode: string;
+  let testArticleId: number;
+  let invoiceTotal: { rawTotal: string, cleanTotal: string };
 
-  const clientData: ClientData = {
-    fullName: DataHelper.generateClientName(),
-    cuit: DataHelper.generateCUIT(),
-    email: DataHelper.generateEmail(),
-    phone: DataHelper.generatePhone(),
-    contact: DataHelper.generateContact(),
-    field: "Alimentos",
-    zone: "8",
-    exportLaw: "1",
-  };
+  const costPrice = DataHelper.generateCost();
+  const salePrice = DataHelper.generatePrice(costPrice);
 
-  const articleData: ArticleData = {
-    sku: DataHelper.generateSKU(),
-    description: DataHelper.generateArticleName(),
-    line: "37",
-    stock: DataHelper.generateStock(),
-    purchasePrice: DataHelper.generatePrice(),
-    salePrice: DataHelper.generatePrice(),
-    category: "53",
-    status: "1",
-  };
+  test.beforeAll(async ({ request }) => {
+    authToken = await getAuthToken(request);
 
-  test.beforeAll(async ({ browser }) => {
-    const context = await browser.newContext();
-    const setupPage = await context.newPage();
+    const headers = {
+      Accept: "application/json",
+      Authorization: `Bearer ${authToken}`,
+      "Content-Type": "application/json",
+    };
 
-    const loginPage = new LoginPage(setupPage);
-    const clientPage = new ClientPage(setupPage);
-    const articlePage = new ArticlePage(setupPage);
+    const clientRes = await request.post(`${API_URL}/clients`, {
+      headers,
+      data: {
+        name: DataHelper.generateClientName(),
+        cuit: DataHelper.generateCUIT(),
+        email: DataHelper.generateEmail(),
+        phone: DataHelper.generatePhone(),
+        whatsapp: "",
+        estado: "Activo",
+        startdate: new Date().toISOString().split("T")[0],
+        taxes: [],
+      },
+    });
+    expect(clientRes.ok()).toBeTruthy();
+    const clientData = await clientRes.json();
+    console.log("CLIENT DATA", clientData);
 
-    // Login inicial
-    await loginPage.navigate();
-    await loginPage.login(ADMIN_EMAIL, ADMIN_PASSWORD);
-    await expect(setupPage).toHaveURL(/.*dashboard/);
+    testClientCode = String(clientData.data.customer_code);
+    testClientName = clientData.data.name;
+    testClientId = clientData.data.id;
 
-    // Crear Cliente Pre-requisito
-    await clientPage.navigate();
-    await clientPage.goToCreateForm();
-    await clientPage.createClient(clientData);
-    await expect(clientPage.getNotification("Cliente guardado con éxito!")).toBeVisible();
+    const productRes = await request.post(`${API_URL}/products`, {
+      headers,
+      data: {
+        sku: DataHelper.generateSKU(),
+        name: DataHelper.generateArticleName(),
+        stock_quantity: Number(DataHelper.generateStock()),
+        cost_price: Number(costPrice),
+        sale_price: Number(salePrice),
+        unit: "",
+        is_active: true,
+        line: "37",
+        category: "53",
+        taxes: [],
+      },
+    });
+    expect(productRes.ok()).toBeTruthy();
+    const productData = await productRes.json();
+    console.log("PRODUCT DATA", productData);
 
-    // Crear Artículo Pre-requisito
-    await articlePage.navigate();
-    await expect(setupPage).toHaveURL(/.*articulos/); // Sin tilde en la URL
-    await articlePage.goToCreateForm();
-    await articlePage.createArticle(articleData);
-    await expect(articlePage.getNotification("Artículo guardado con éxito!")).toBeVisible();
-
-    // Cerramos el contexto temporal de setup
-    await context.close();
+    testArticleCode = String(productData.data.sku);
+    testArticleId = productData.data.id;
   });
 
-  // 3. Cada test inicia con su propio contexto de navegador fresco
   test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
+    loginPage = new LoginPage(page);
     invoicePage = new InvoicePage(page);
 
     await loginPage.navigate();
-    await expect(loginPage.emailInput).toBeVisible();
     await loginPage.login(ADMIN_EMAIL, ADMIN_PASSWORD);
     await expect(page).toHaveURL(/.*dashboard/);
   });
 
-  test("Create Invoice and verify generation", async () => {
-    await test.step("Navigate to Invoices module", async () => {
+  test("Create, Search and Delete Invoice", async () => {
+    await test.step("Navigate to invoice module", async () => {
       await invoicePage.navigate();
+
+      await expect(invoicePage.page).toHaveURL(/.*facturas-de-venta/);
     });
 
-    await test.step("Issue Invoice", async () => {
-      const generatedInvoiceId = await invoicePage.createInvoice({
-        clientName: clientData.fullName,
-        articleName: articleData.name,
-        quantity: "1",
-      });
-      expect(generatedInvoiceId).toBeTruthy();
+    await test.step("Open new invoice form", async () => {
+      await invoicePage.goToCreateForm();
+
+      await expect(invoicePage.page).toHaveURL(/.*nuevo/);
+      await expect(invoicePage.clientCode).toBeVisible()
     });
+
+    await test.step("Issue new Invoice", async () => {
+      invoiceTotal = await invoicePage.createInvoice({
+        clientCode: testClientCode,
+        vendedorCode: "01",
+        monedaCode: "01",
+        articleCode: testArticleCode,
+        address: "Calle Falsa 123"
+      }, "seleccionado");
+
+      await expect(invoicePage.getNotification("creada con")).toBeVisible();
+      await expect(invoicePage.spinner).toBeHidden()
+    });
+
+    await test.step("Search the generated invoice", async () => {
+      await invoicePage.searchInvoice(invoiceTotal.cleanTotal);
+
+      await expect(invoicePage.getInvoiceRow(invoiceTotal.rawTotal)).toBeVisible();
+      await expect(invoicePage.getInvoiceRow(testClientName)).toBeVisible();
+    });
+
+    await test.step("Delete the invoice", async () => {
+      await invoicePage.deleteInvoice();
+
+      await expect(invoicePage.getNotification("Factura de Venta eliminado con éxito.")).toBeVisible();
+    });
+  });
+
+  test.afterAll(async ({ request }) => {
+    const headers = {
+      Authorization: `Bearer ${authToken}`,
+      Accept: "application/json",
+    };
+
+    if (testClientId) {
+      const clientRes = await request.delete(`${API_URL}/clients/${testClientId}`, { headers });
+      if (!clientRes.ok()) {
+        console.error(`❌ Error al eliminar cliente (${testClientId}): Status ${clientRes.status()}`);
+      }
+    }
+
+    if (testArticleId) {
+      const productRes = await request.delete(`${API_URL}/products/${testArticleId}`, { headers });
+      if (!productRes.ok()) {
+        console.error(`❌ Error al eliminar producto (${testArticleId}): Status ${productRes.status()}`);
+      }
+    }
   });
 });

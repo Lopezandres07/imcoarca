@@ -6,8 +6,8 @@ export interface ArticleData {
   description: string;
   line: string;
   stock: string;
-  purchasePrice: string;
-  salePrice: string;
+  purchasePrice: number;
+  salePrice: number;
   category: string;
   status: string;
 }
@@ -64,8 +64,8 @@ export class ArticlePage extends BasePage {
     await this.selectOption(this.lineSelect, data.line, 'Línea');
     await this.selectOption(this.categorySelect, data.category, 'Categoría');
     await this.selectOption(this.statusSelect, data.status, 'Estado');
-    await this.fillInput(this.salePriceInput, data.salePrice, 'Precio de Venta');
-    await this.fillInput(this.purchasePriceInput, data.purchasePrice, 'Precio de Compra');
+    await this.fillInput(this.salePriceInput, data.salePrice.toString(), 'Precio de Venta');
+    await this.fillInput(this.purchasePriceInput, data.purchasePrice.toString(), 'Precio de Compra');
     await this.fillInput(this.stockInput, data.stock, 'Stock');
     await this.clickElement(this.saveButton, 'Guardar article form');
 

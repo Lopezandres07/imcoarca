@@ -1,98 +1,118 @@
 import { type Page, type Locator } from '@playwright/test';
 import { BasePage } from '../utils/BasePage';
 
-/* 
-Campos obligatorios en el formulario:
-
-Cliente
-Vendedor
-Moneda
-
-Campos visuales en la tabla:
-
-Nº Factura
-Fecha
-Cliente
-Pedido Orig.
-Total
-Estado
-*/
-
-
 export interface InvoicePayload {
-  clientName: string;
-  articleName: string;
-  quantity: string;
+  clientCode: string;
+  vendedorCode: string;
+  monedaCode: string;
+  address: string
+  articleCode: string;
 }
 
 export class InvoicePage extends BasePage {
   readonly createInvoiceButton: Locator;
-  readonly clientSearchInput: Locator;
-  readonly clientOption: Locator;
-  readonly articleSearchInput: Locator;
-  readonly articleOption: Locator;
-  readonly quantityInput: Locator;
+  readonly clientCode: Locator;
+  readonly vendedorCode: Locator;
+  readonly monedaCode: Locator;
+  readonly clientAddress: Locator;
+  readonly addressInput: Locator;
   readonly addArticleButton: Locator;
+  readonly articleCode: Locator;
+  readonly totalInvoice: Locator;
   readonly saveInvoiceButton: Locator;
-  readonly generatedInvoiceId: Locator;
-  readonly successToast: Locator;
+  readonly notificationMessage: Locator;
+  readonly spinner: Locator;
+  readonly deleteButton: Locator;
+  readonly confirmDeleteButton: Locator
 
   constructor(page: Page) {
     super(page);
-    this.createInvoiceButton = page.locator('button:has-text("Nueva Venta"), button:has-text("Crear Factura")').first();
-    this.clientSearchInput = page.locator('input[placeholder*="Buscar cliente"], #client_search, input[name="client_search"]').first();
-    this.clientOption = page.locator('ul[role="listbox"] li, .dropdown-menu li, .react-select__menu .react-select__option').first();
-    this.articleSearchInput = page.locator('input[placeholder*="Buscar artículo"], #article_search, input[name="article_search"]').first();
-    this.articleOption = page.locator('ul[role="listbox"] li, .dropdown-menu li, .react-select__menu .react-select__option').first();
-    this.quantityInput = page.locator('input[name="quantity"], input[placeholder="Cant"], input[placeholder="Cantidad"]').first();
-    this.addArticleButton = page.locator('button:has-text("Agregar"), button:has-text("+")').first();
-    this.saveInvoiceButton = page.locator('button:has-text("Guardar y emitir"), button[type="submit"]:has-text("Guardar")').first();
-    // Assuming the invoice ID appears in a specific element after save or in a toast message
-    this.generatedInvoiceId = page.locator('.invoice-id, [data-testid="invoice-id"], h3:has-text("Factura #")').first();
-    this.successToast = page.locator('.Toastify').locator('div[role="alert"]');
+    this.createInvoiceButton = page.locator('button:has-text("Crear Factura de Venta")');
+    this.clientCode = page.locator('div').filter({ hasText: /^Cliente/ }).locator('input').first();
+    this.vendedorCode = page.locator('div').filter({ hasText: /^Vendedor/ }).locator('input').first();
+    this.monedaCode = page.locator('div').filter({ hasText: /^Moneda/ }).locator('input').first();
+    this.clientAddress = page.locator('[name="delivery_address_selector"]');
+    this.addressInput = page.getByRole('textbox', { name: 'Ingrese la nueva dirección de entrega' })
+    this.addArticleButton = page.getByRole('button', { name: 'Agregar Ítem' });
+    this.articleCode = page.locator('div').filter({ hasText: /^Artículo/ }).locator('input').first();
+    this.totalInvoice = page.locator('span:has-text("Total Final:") + span');
+    this.saveInvoiceButton = page.getByRole('button', { name: 'Guardar Factura' });
+    this.notificationMessage = page.locator('.Toastify__toast-body, .Toastify__toast');
+    this.spinner = page.locator('.animate-spin');
+    this.deleteButton = page.getByRole('button', { name: 'Eliminar' });
+    this.confirmDeleteButton = page.getByRole('button', { name: 'Confirmar' });
   }
 
   async navigate(): Promise<void> {
-    await this.navigateTo('/ventas'); // Assuming the URL path is /ventas for invoices/sales
+    await this.navigateTo('/facturas-de-venta');
   }
 
-  async createInvoice(payload: InvoicePayload): Promise<string> {
-    await this.clickElement(this.createInvoiceButton, 'Crear Factura button');
+  async goToCreateForm(): Promise<void> {
+    await this.clickElement(this.createInvoiceButton, "Crear Factura de Venta");
+  }
 
-    // Select Client
-    await this.waitForVisibility(this.clientSearchInput, 'Client search input');
-    await this.fillInput(this.clientSearchInput, payload.clientName, 'Client search');
-    await this.page.waitForTimeout(1000); // Wait for debounce/search
-    await this.clickElement(this.clientOption.filter({ hasText: payload.clientName }).first(), `Select client: ${payload.clientName}`);
+  async createInvoice(data: InvoicePayload, toastText: string): Promise<{ rawTotal: string, cleanTotal: string }> {
+    const waitForToast = async () => {
+      const toast = this.notificationMessage.filter({ hasText: new RegExp(toastText, 'i') }).first();
 
-    // Add Article
-    await this.fillInput(this.articleSearchInput, payload.articleName, 'Article search');
-    await this.page.waitForTimeout(1000); // Wait for debounce/search
-    await this.clickElement(this.articleOption.filter({ hasText: payload.articleName }).first(), `Select article: ${payload.articleName}`);
+      await toast.waitFor({ state: 'visible' });
 
-    if (await this.quantityInput.isVisible()) {
-      await this.fillInput(this.quantityInput, payload.quantity, 'Quantity');
-    }
+      await toast.click();
 
-    if (await this.addArticleButton.isVisible()) {
-      await this.clickElement(this.addArticleButton, 'Agregar artículo');
-    }
+      await toast.waitFor({ state: 'hidden' });
+    };
 
-    // Save
+    await this.fillInput(this.clientCode, data.clientCode, 'Client input');
+    await this.clientCode.press('Enter');
+    await waitForToast();
+
+    await this.fillInput(this.vendedorCode, data.vendedorCode, 'Vendedor input');
+    await this.vendedorCode.press('Enter');
+    await waitForToast();
+
+    await this.fillInput(this.monedaCode, data.monedaCode, 'Moneda input');
+    await this.monedaCode.press('Enter');
+    await waitForToast();
+
+    await this.selectOption(this.clientAddress, '--- Ingresar Otra Dirección ---', 'Client Address');
+    await this.fillInput(this.addressInput, data.address, 'Address input');
+
+    await this.clickElement(this.addArticleButton, 'Add Article');
+    await this.fillInput(this.articleCode, data.articleCode, 'Article input');
+    await this.articleCode.press('Enter');
+    await waitForToast();
+
+    const rawTotal = (await this.totalInvoice.innerText()).replace(/\s+/g, ' ').trim();
+    const cleanTotal = rawTotal.split(',')[0].replace(/\D/g, '');
+
     await this.clickElement(this.saveInvoiceButton, 'Guardar Factura');
-    await this.waitForVisibility(this.successToast, 'Success notification');
 
-    // Extract ID (Fallback to a dummy if we can't reliably get it from DOM yet without real inspection)
-    let invoiceId = `INV-${Date.now()}`;
-    try {
-      if (await this.generatedInvoiceId.isVisible({ timeout: 2000 })) {
-        const text = await this.generatedInvoiceId.textContent();
-        if (text) invoiceId = text.replace('Factura #', '').trim();
-      }
-    } catch (e) {
-      // Proceed with fallback
-    }
+    return { rawTotal, cleanTotal };
+  }
 
-    return invoiceId;
+  async searchInvoice(query: string): Promise<void> {
+    await this.fillInput(
+      this.page.locator("#search-term"),
+      query,
+      "Invoice search input"
+    );
+    await this.clickElement(
+      this.page.locator('button:has-text("Buscar")'),
+      "Buscar button"
+    );
+  }
+
+  getNotification(text: string): Locator {
+    return this.notificationMessage.filter({ hasText: new RegExp(text, 'i') }).first();
+  }
+
+  getInvoiceRow(textToFind: string): Locator {
+    return this.page.locator('tbody tr').filter({ hasText: textToFind }).first();
+  }
+
+  async deleteInvoice(): Promise<void> {
+    await this.clickElement(this.deleteButton, "Delete invoice button");
+    await this.confirmDeleteButton.waitFor({ state: 'visible' });
+    await this.clickElement(this.confirmDeleteButton, "Confirmar delete button");
   }
 }

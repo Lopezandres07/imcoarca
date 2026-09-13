@@ -12,13 +12,16 @@ test.describe("Articles Module", () => {
   let loginPage: LoginPage;
   let articlePage: ArticlePage;
 
+  const costPrice = DataHelper.generateCost();
+  const salePrice = DataHelper.generatePrice(costPrice);
+
   const articleData: ArticleData = {
     sku: DataHelper.generateSKU(),
     description: DataHelper.generateArticleName(),
     line: "37",
     stock: DataHelper.generateStock(),
-    purchasePrice: DataHelper.generatePrice(),
-    salePrice: DataHelper.generatePrice(),
+    purchasePrice: Number(costPrice),
+    salePrice: Number(salePrice),
     category: "53",
     status: "1",
   };
@@ -70,6 +73,7 @@ test.describe("Articles Module", () => {
 
     await test.step("Delete article and verify cleanup", async () => {
       await articlePage.deleteArticle();
+
       await expect(articlePage.getNotification("Artículo eliminado con éxito.")).toBeVisible();
     });
   });

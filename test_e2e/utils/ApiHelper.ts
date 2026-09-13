@@ -1,7 +1,7 @@
 import { APIRequestContext, expect } from "@playwright/test";
 
 export async function getAuthToken(request: APIRequestContext): Promise<string> {
-    const API_URL = process.env.API_URL || "https://back-imcoarca.leonardojose.dev/api";
+    const API_URL = process.env.API_URL
 
     const response = await request.post(`${API_URL}/login`, {
         headers: {
