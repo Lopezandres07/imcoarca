@@ -1,7 +1,6 @@
 # 🚀 Estrategia de Aseguramiento de Calidad - Pruebas E2E (Proyecto Final)
 
 [![Playwright Tests](https://github.com/Lopezandres07/imcoarca/actions/workflows/playwright.yml/badge.svg)](https://github.com/Lopezandres07/imcoarca/actions)
-[![Allure Report](https://img.shields.io/badge/Allure_Report-View_Report-blue?logo=qgis)](https://lopezandres07.github.io/imcoarca/)
 
 Este repositorio contiene la implementación técnica del plan de pruebas automatizadas E2E (End-to-End) para el Proyecto Final. El objetivo principal es garantizar la integridad, funcionalidad y seguridad del sistema, asegurando una cobertura completa de los procesos operativos clave mediante el framework **Playwright**.
 
