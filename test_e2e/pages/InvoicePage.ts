@@ -39,7 +39,7 @@ export class InvoicePage extends BasePage {
     this.saveInvoiceButton = page.getByRole('button', { name: 'Guardar Factura' });
     this.notificationMessage = page.locator('.Toastify__toast-body, .Toastify__toast');
     this.spinner = page.locator('.animate-spin');
-    this.deleteButton = page.getByRole('button', { name: 'Eliminar' });
+    this.deleteButton = page.getByRole('button', { name: 'Eliminar' }).first();
     this.confirmDeleteButton = page.getByRole('button', { name: 'Confirmar' });
   }
 
@@ -110,8 +110,11 @@ export class InvoicePage extends BasePage {
     return this.page.locator('tbody tr').filter({ hasText: textToFind }).first();
   }
 
-  async deleteInvoice(): Promise<void> {
-    await this.clickElement(this.deleteButton, "Delete invoice button");
+  async deleteInvoice(targetText?: string): Promise<void> {
+    const btn = targetText
+      ? this.getInvoiceRow(targetText).getByRole('button', { name: 'Eliminar' })
+      : this.deleteButton.first();
+    await this.clickElement(btn, "Delete invoice button");
     await this.confirmDeleteButton.waitFor({ state: 'visible' });
     await this.clickElement(this.confirmDeleteButton, "Confirmar delete button");
   }

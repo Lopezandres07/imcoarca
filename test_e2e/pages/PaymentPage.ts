@@ -35,7 +35,7 @@ export class PaymentPage extends BasePage {
     this.totalPayment = page.locator('span:has-text("TOTAL COBRADO:") + span')
     this.notificationMessage = page.locator('.Toastify__toast-body, .Toastify__toast');
     this.spinner = page.locator('.animate-spin');
-    this.deleteButton = page.getByRole('button', { name: 'Eliminar' });
+    this.deleteButton = page.getByRole('button', { name: 'Eliminar' }).first();
     this.confirmDeleteButton = page.getByRole('button', { name: 'Confirmar' });
   }
 
@@ -98,8 +98,11 @@ export class PaymentPage extends BasePage {
     return this.page.locator('tbody tr').filter({ hasText: textToFind }).first();
   }
 
-  async deletePayment(): Promise<void> {
-    await this.clickElement(this.deleteButton, "Delete payment button");
+  async deletePayment(query?: string): Promise<void> {
+    const btn = query
+      ? this.getInvoiceRow(query).getByRole('button', { name: 'Eliminar' })
+      : this.deleteButton;
+    await this.clickElement(btn, "Delete payment button");
     await this.confirmDeleteButton.waitFor({ state: 'visible' });
     await this.clickElement(this.confirmDeleteButton, "Confirmar delete button");
   }

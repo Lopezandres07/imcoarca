@@ -46,7 +46,7 @@ export class ArticlePage extends BasePage {
     this.saveButton = page.locator('button[type="submit"]:has-text("Guardar")');
     this.notificationMessage = page.getByRole("alert");
     this.spinner = page.locator('.animate-spin');
-    this.deleteButton = page.getByRole('button', { name: 'Eliminar' });
+    this.deleteButton = page.getByRole('button', { name: 'Eliminar' }).first();
     this.confirmDeleteButton = page.getByRole('button', { name: 'Confirmar' });
   }
 
@@ -92,8 +92,11 @@ export class ArticlePage extends BasePage {
     );
   }
 
-  async deleteArticle(): Promise<void> {
-    await this.clickElement(this.deleteButton, "Delete article button");
+  async deleteArticle(sku?: string): Promise<void> {
+    const btn = sku
+      ? this.page.locator('tbody tr').filter({ hasText: sku }).getByRole('button', { name: 'Eliminar' })
+      : this.deleteButton;
+    await this.clickElement(btn, "Delete article button");
     await this.confirmDeleteButton.waitFor({ state: 'visible' });
     await this.clickElement(this.confirmDeleteButton, "Confirmar delete button");
   }

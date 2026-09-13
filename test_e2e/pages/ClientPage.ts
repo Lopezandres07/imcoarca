@@ -41,7 +41,7 @@ export class ClientPage extends BasePage {
     this.saveButton = page.locator('button[type="submit"]:has-text("Guardar")');
     this.notificationMessage = page.getByRole("alert");
     this.spinner = page.locator('.animate-spin');
-    this.deleteButton = page.getByRole('button', { name: 'Eliminar' });
+    this.deleteButton = page.getByRole('button', { name: 'Eliminar' }).first();
   }
 
   async navigate(): Promise<void> {
@@ -86,8 +86,18 @@ export class ClientPage extends BasePage {
     return this.page.getByText(email).first();
   }
 
-  async deleteClient(): Promise<void> {
-    await this.clickElement(this.deleteButton, "Delete client button");
+  async getClientCode(email: string): Promise<string> {
+    const row = this.page.locator('tbody tr').filter({ hasText: email }).first();
+    await row.waitFor({ state: 'visible' });
+    const code = await row.locator('td').first().innerText();
+    return code.trim();
+  }
+
+  async deleteClient(email?: string): Promise<void> {
+    const btn = email
+      ? this.page.locator('tbody tr').filter({ hasText: email }).getByRole('button', { name: 'Eliminar' })
+      : this.deleteButton;
+    await this.clickElement(btn, "Delete client button");
     await this.clickElement(this.page.getByRole('button', { name: 'Confirmar' }), "Confirmar delete button");
   }
 }
