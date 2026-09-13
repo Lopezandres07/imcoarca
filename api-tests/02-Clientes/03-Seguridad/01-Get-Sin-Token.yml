@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/api/clients?sort_direction=asc"
+  url: "{{baseUrl}}/clients?sort_direction=asc"
   headers:
     - name: Accept
       value: application/json
@@ -30,6 +30,18 @@ runtime:
         test("Debe indicar que el usuario no está autenticado", function () {
             expect(res.body.message).to.equal("No autenticado.");
         });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "401"
+      description: La consulta sin token debe ser rechazada con código 401
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
+    - expression: res.body.message
+      operator: eq
+      value: No autenticado.
+      description: El mensaje debe indicar que el usuario no está autenticado
 
 settings:
   encodeUrl: true

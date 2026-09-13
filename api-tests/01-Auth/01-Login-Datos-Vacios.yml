@@ -1,0 +1,68 @@
+info:
+  name: 01-Login-Datos-Vacios
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/login"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Accept
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "email": "",
+        "password": ""
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Debe responder 422 Unprocessable Entity", function () {
+            expect(res.status).to.equal(422);
+        });
+
+        test("Debe retornar un mensaje de validación", function () {
+            expect(res.body.message).to.equal(
+                "Los datos proporcionados no son válidos."
+            );
+        });
+
+        test("Debe informar que el email es obligatorio", function () {
+            expect(res.body.errors.email[0]).to.equal(
+                "The email field is required."
+            );
+        });
+
+        test("Debe informar que la contraseña es obligatoria", function () {
+            expect(res.body.errors.password[0]).to.equal(
+                "The password field is required."
+            );
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "422"
+      description: El login con datos vacíos debe ser rechazado con código 422
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
+    - expression: res.body.errors.email
+      operator: isArray
+      description: La respuesta debe incluir errores de validación para el email
+    - expression: res.body.errors.password
+      operator: isArray
+      description: La respuesta debe incluir errores de validación para la contraseña
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

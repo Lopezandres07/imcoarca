@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/api/clients"
+  url: "{{baseUrl}}/clients"
   headers:
     - name: Authorization
       value: Bearer {{sellerToken}}
@@ -64,7 +64,21 @@ runtime:
         test("Debe crear el cliente con el nombre enviado", function () {
             expect(res.body.data.name).to.equal("Cliente Vendedor Bruno");
         });
+
+        test("Debe crear el cliente con el CUIT enviado", function () {
+            expect(res.body.data.cuit).to.equal("20-12345678-6");
+        });
   assertions:
+    - expression: res.status
+      operator: eq
+      value: "201"
+      description: La creación de cliente con usuario Vendedor debe responder exitosamente con código 201
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
+    - expression: res.body.data.id
+      operator: isNumber
+      description: El cliente creado debe retornar un identificador numérico
     - expression: res.body.data.name
       operator: eq
       value: Cliente Vendedor Bruno

@@ -1,16 +1,16 @@
 name: QA
 variables:
   - name: baseUrl
-    value: https://back-imcoarca.leonardojose.dev
+    value: https://back-imcoarca.leonardojose.dev/api
   - name: token
-    value: 4012|7LMlXQmLRpKd6GrCoc36yUjr0jYuHvlNfR3V2BIMd5b8187f
+    value: 4203|xv1NkfDo2kAyWY4fBI6mgdagmqsbEv3hhJWwaPV1e49341d4
   - name: clienteId
     value:
       type: number
-      data: "19734"
+      data: "19773"
   - name: sellerToken
-    value: 4013|LN7VUHiO8Tr05n0XGdzRMCCqiHuHlBPVPROmtZZp1f8191ac
+    value: 4204|7sH6OWD0MYv4rLbyUtUG3fyjNRT1dcuvGg8ORP3A04bf44df
   - name: sellerClienteId
     value:
       type: number
-      data: "19736"
+      data: "19777"

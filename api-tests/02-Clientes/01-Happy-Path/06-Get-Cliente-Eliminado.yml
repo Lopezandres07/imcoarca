@@ -5,13 +5,45 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/api/clients/{{clienteId}}"
+  url: "{{baseUrl}}/clients/{{clienteId}}"
   headers:
     - name: Authorization
       value: Bearer {{token}}
     - name: Accept
       value: application/json
   auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Debe responder 404 Not Found", function () {
+            expect(res.status).to.equal(404);
+        });
+
+        test("Debe retornar un mensaje de error", function () {
+            expect(res.body).to.have.property("message");
+        });
+
+        test("Debe indicar que el cliente no existe", function () {
+            expect(res.body.message).to.include(
+                "No query results for model"
+            );
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "404"
+      description: La consulta del cliente eliminado debe responder con código 404
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
+    - expression: res.body.message
+      operator: isString
+    - expression: ""
+      operator: eq
+      value: ""
+      description: La respuesta debe incluir un mensaje de error
 
 settings:
   encodeUrl: true

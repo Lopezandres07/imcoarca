@@ -5,7 +5,7 @@ info:
 
 http:
   method: PUT
-  url: "{{baseUrl}}/api/clients/{{sellerClienteId}}"
+  url: "{{baseUrl}}/clients/{{sellerClienteId}}"
   headers:
     - name: Authorization
       value: Bearer {{sellerToken}}
@@ -67,9 +67,25 @@ runtime:
             expect(res.body.data.cuit).to.equal("20-12345678-6");
         });
   assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+      description: La actualización de cliente con usuario Vendedor debe responder exitosamente con código 200
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
+    - expression: res.body.data.id
+      operator: eq
+      value: "{{sellerClienteId}}"
+      description: El identificador retornado debe corresponder al cliente actualizado
     - expression: res.body.data.name
       operator: eq
       value: Cliente Vendedor Bruno Actualizado
+      description: El nombre del cliente debe reflejar la actualización realizada
+    - expression: res.body.data.cuit
+      operator: eq
+      value: 20-12345678-6
+      description: El CUIT del cliente debe mantenerse sin cambios
 
 settings:
   encodeUrl: true

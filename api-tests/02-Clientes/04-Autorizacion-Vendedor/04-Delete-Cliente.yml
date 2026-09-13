@@ -5,7 +5,7 @@ info:
 
 http:
   method: DELETE
-  url: "{{baseUrl}}/api/clients/{{sellerClienteId}}"
+  url: "{{baseUrl}}/clients/{{sellerClienteId}}"
   headers:
     - name: Authorization
       value: Bearer {{sellerToken}}
@@ -20,6 +20,11 @@ runtime:
         test("Debe rechazar la eliminación del cliente", function () {
             expect(res.status).to.equal(403);
         });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "403"
+      description: La eliminación de clientes con usuario Vendedor debe ser rechazada por falta de permiso con el código 403
 
 settings:
   encodeUrl: true

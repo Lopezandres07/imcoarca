@@ -5,13 +5,26 @@ info:
 
 http:
   method: DELETE
-  url: "{{baseUrl}}/api/clients/{{clienteId}}"
+  url: "{{baseUrl}}/clients/{{clienteId}}"
   headers:
     - name: Authorization
       value: Bearer {{token}}
     - name: Accept
       value: application/json
   auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Debe responder 204 No Content", function () {
+            expect(res.status).to.equal(204);
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "204"
+      description: La eliminación del cliente debe responder exitosamente con código 204
 
 settings:
   encodeUrl: true

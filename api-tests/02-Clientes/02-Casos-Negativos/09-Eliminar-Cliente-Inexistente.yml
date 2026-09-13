@@ -1,11 +1,11 @@
 info:
-  name: 08-Eliminar-Cliente-Inexistente
+  name: 09-Eliminar-Cliente-Inexistente
   type: http
-  seq: 8
+  seq: 9
 
 http:
   method: DELETE
-  url: "{{baseUrl}}/api/clients/99999999"
+  url: "{{baseUrl}}/clients/99999999"
   headers:
     - name: Authorization
       value: Bearer {{token}}
@@ -30,6 +30,17 @@ runtime:
                 "No query results for model"
             );
         });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "404"
+      description: La eliminación de un cliente inexistente debe responder con código 404
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
+    - expression: res.body.message
+      operator: isString
+      description: La respuesta debe incluir un mensaje de error
 
 settings:
   encodeUrl: true

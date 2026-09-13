@@ -1,20 +1,23 @@
 info:
-  name: 02-Get-Token-Invalido
+  name: 02-Login-Datos-Invalidos
   type: http
   seq: 2
 
 http:
-  method: GET
-  url: "{{baseUrl}}/clients?sort_direction=asc"
+  method: POST
+  url: "{{baseUrl}}/login"
   headers:
-    - name: Authorization
-      value: Bearer token_invalido_12345
+    - name: Content-Type
+      value: application/json
     - name: Accept
       value: application/json
-  params:
-    - name: sort_direction
-      value: asc
-      type: query
+  body:
+    type: json
+    data: |-
+      {
+        "email": "usuario.inexistente@test.com",
+        "password": "PasswordIncorrecta123"
+      }
   auth: inherit
 
 runtime:
@@ -29,21 +32,23 @@ runtime:
             expect(res.body).to.have.property("message");
         });
 
-        test("Debe indicar que el usuario no está autenticado", function () {
-            expect(res.body.message).to.equal("No autenticado.");
+        test("Debe indicar que las credenciales son incorrectas", function () {
+            expect(res.body.message).to.equal(
+                "Las credenciales proporcionadas son incorrectas."
+            );
         });
   assertions:
     - expression: res.status
       operator: eq
       value: "401"
-      description: La consulta con un token inválido debe ser rechazada con código 401
+      description: El login con credenciales inválidas debe ser rechazado con código 401
     - expression: res.body
       operator: isJson
       description: El body de la respuesta debe ser un JSON válido
     - expression: res.body.message
       operator: eq
-      value: No autenticado.
-      description: El mensaje debe indicar que el token no permite autenticar al usuario
+      value: Las credenciales proporcionadas son incorrectas.
+      description: El mensaje debe indicar que las credenciales proporcionadas son incorrectas
 
 settings:
   encodeUrl: true

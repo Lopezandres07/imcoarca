@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/api/clients"
+  url: "{{baseUrl}}/clients"
   headers:
     - name: Authorization
       value: Bearer {{token}}
@@ -54,6 +54,21 @@ runtime:
         test("Debe indicar que cuit es obligatorio", function () {
             expect(res.body.errors.cuit[0]).to.equal("The cuit field is required.");
         });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "422"
+      description: La creación sin CUIT debe ser rechazada con código 422
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
+    - expression: res.body.errors.cuit
+      operator: isArray
+      description: La respuesta debe incluir errores de validación para el campo cuit
+    - expression: res.body.errors.cuit[0]
+      operator: eq
+      value: The cuit field is required.
+      description: El mensaje debe indicar que el CUIT es obligatorio
 
 settings:
   encodeUrl: true
