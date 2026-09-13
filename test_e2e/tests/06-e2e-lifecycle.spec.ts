@@ -104,9 +104,6 @@ test.describe("E2E Lifecycle — Data Persistence & Transactional Flow", () => {
       expect(clientCode).toBeTruthy();
     });
 
-    // ==========================================
-    // 2. ARTICLE CREATION & PERSISTENCE
-    // ==========================================
     await test.step("Navigate to Articles module", async () => {
       await articlePage.navigate();
       await expect(articlePage.page).toHaveURL(/.*articulos/);
@@ -131,9 +128,6 @@ test.describe("E2E Lifecycle — Data Persistence & Transactional Flow", () => {
       await expect(articlePage.getArticleRow(articleData.sku)).toHaveText(articleData.sku);
     });
 
-    // ==========================================
-    // 3. SALES INVOICE ISSUANCE
-    // ==========================================
     await test.step("Navigate to Invoices module", async () => {
       await invoicePage.navigate();
       await expect(invoicePage.page).toHaveURL(/.*facturas-de-venta/);
@@ -167,9 +161,6 @@ test.describe("E2E Lifecycle — Data Persistence & Transactional Flow", () => {
       await expect(invoicePage.getInvoiceRow(clientData.fullName)).toBeVisible();
     });
 
-    // ==========================================
-    // 4. PAYMENT PROCESSING (COBRANZAS)
-    // ==========================================
     await test.step("Navigate to Payment module", async () => {
       await paymentPage.navigate();
       await expect(paymentPage.page).toHaveURL(/.*cobranzas/);
@@ -201,9 +192,6 @@ test.describe("E2E Lifecycle — Data Persistence & Transactional Flow", () => {
       await expect(paymentPage.getInvoiceRow(clientData.fullName)).toBeVisible();
     });
 
-    // ==========================================
-    // 5. CLEANUP IN REVERSE ORDER (UI ONLY)
-    // ==========================================
     await test.step("Delete payment and verify cleanup", async () => {
       await paymentPage.deletePayment(clientData.fullName);
       await expect(paymentPage.getNotification("eliminad")).toBeVisible();
