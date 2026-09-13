@@ -1,0 +1,80 @@
+info:
+  name: 06-Create-Tipo-Dato-Invalido
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{baseUrl}}/clients"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+    - name: Content-Type
+      value: application/json
+    - name: Accept
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": 12345,
+        "cuit": "20-12345678-6",
+        "email": "cliente@test.com",
+        "phone": "",
+        "whatsapp": "",
+        "cbu": null,
+        "collection_contact": "",
+        "collection_email": "",
+        "collection_phone": "",
+        "collection_portal_password": "",
+        "collection_portal_url": "",
+        "collection_portal_username": "",
+        "estado": "Activo",
+        "serie": "",
+        "startdate": "2026-09-02",
+        "tax": "",
+        "taxes": [],
+        "zone": null,
+        "zone_name": null
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Debe responder 422 Unprocessable Entity", function () {
+            expect(res.status).to.equal(422);
+        });
+
+        test("Debe informar error de validación en name", function () {
+            expect(res.body.errors).to.have.property("name");
+        });
+
+        test("Debe indicar que name debe ser un string", function () {
+            expect(res.body.errors.name[0]).to.equal(
+                "The name field must be a string."
+            );
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "422"
+      description: La creación con un tipo de dato inválido debe ser rechazada con código 422
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
+    - expression: res.body.errors.name
+      operator: isArray
+      description: La respuesta debe incluir errores de validación para el campo name
+    - expression: res.body.errors.name[0]
+      operator: eq
+      value: The name field must be a string.
+      description: El mensaje debe indicar que el campo name debe ser de tipo string
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,0 +1,97 @@
+info:
+  name: 02-Create-Cliente
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/clients"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+    - name: Content-Type
+      value: application/json
+    - name: Accept
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Cliente API Bruno Prueba",
+        "cuit": "20-12345678-6",
+        "email": "",
+        "phone": "",
+        "whatsapp": "",
+        "cbu": null,
+        "collection_contact": "",
+        "collection_email": "",
+        "collection_phone": "",
+        "collection_portal_password": "",
+        "collection_portal_url": "",
+        "collection_portal_username": "",
+        "estado": "Activo",
+        "serie": "",
+        "startdate": "2026-09-02",
+        "tax": "",
+        "taxes": [],
+        "zone": null,
+        "zone_name": null
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 201 && res.body?.data?.id) {
+          bru.setEnvVar("clienteId", res.body.data.id);
+
+          console.log("clienteId guardado correctamente");
+        }
+    - type: tests
+      code: |-
+        test("Debe responder 201 Created", function () {
+            expect(res.status).to.equal(201);
+        });
+
+        test("Debe retornar la propiedad data", function () {
+            expect(res.body).to.have.property("data");
+        });
+
+        test("Debe retornar un id para el cliente creado", function () {
+            expect(res.body.data).to.have.property("id");
+        });
+
+        test("Debe crear el cliente con el nombre enviado", function () {
+            expect(res.body.data.name).to.equal("Cliente API Bruno Prueba");
+        });
+
+        test("Debe crear el cliente con el CUIT enviado", function () {
+            expect(res.body.data.cuit).to.equal("20-12345678-6");
+        });
+  assertions:
+    - expression: res.body.data.name
+      operator: eq
+      value: Cliente API Bruno Prueba
+      description: El nombre del cliente creado debe coincidir con el nombre enviado
+    - expression: res.body.data.cuit
+      operator: eq
+      value: 20-12345678-6
+      description: El CUIT del cliente creado debe coincidir con el CUIT enviado
+    - expression: res.status
+      operator: eq
+      value: "201"
+      description: La creación del cliente debe responder exitosamente con código 201
+    - expression: res.body
+      operator: isJson
+      description: El body debe ser un JSON válido
+    - expression: res.body.data.id
+      operator: isNumber
+      description: El cliente creado debe retornar un identificador numérico
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,0 +1,81 @@
+info:
+  name: 04-Login-Vendedor
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/login"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Accept
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "email": "vendedor@testing.com",
+        "password": "Tae@2026"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200 && res.body?.access_token) {
+            bru.setEnvVar("sellerToken", res.body.access_token);
+            console.log("sellerToken guardado correctamente");
+        }
+    - type: tests
+      code: |-
+        test("Debe responder 200 OK", function () {
+            expect(res.status).to.equal(200);
+        });
+
+        test("Debe retornar un access_token", function () {
+            expect(res.body).to.have.property("access_token");
+        });
+
+        test("Debe retornar token_type Bearer", function () {
+            expect(res.body.token_type).to.equal("Bearer");
+        });
+
+        test("Debe retornar el rol Vendedor", function () {
+            expect(res.body.user.roles[0].name).to.equal("Vendedor");
+        });
+
+        test("Tiene permiso para visualizar clientes", function () {
+            expect(res.body.permissions).to.include("clientes.view");
+        });
+
+        test("Tiene permiso para crear clientes", function () {
+            expect(res.body.permissions).to.include("clientes.create");
+        });
+
+        test("Tiene permiso para editar clientes", function () {
+            expect(res.body.permissions).to.include("clientes.edit");
+        });
+
+        test("No se declara el permiso para eliminar clientes", function () {
+            expect(res.body.permissions).to.not.include("clientes.delete");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+      description: La autenticación debe responder exitosamente
+    - expression: res.body
+      operator: isJson
+      description: El body debe ser un JSON válido
+    - expression: res.body.access_token
+      operator: isString
+      description: El token de acceso debe ser un string
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
