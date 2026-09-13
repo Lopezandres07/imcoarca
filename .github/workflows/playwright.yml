@@ -52,26 +52,30 @@ jobs:
           ref: gh-pages
           path: gh-pages
 
-      - name: Generate Allure Report
-        working-directory: test_e2e
+      - name: Get Allure history
+        uses: actions/checkout@v4
         if: always()
-        run: npm run report:generate
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Generate Allure Report
+        uses: simple-elf/allure-report-action@v1.9
+        if: always()
+        with:
+          allure_results: test_e2e/allure-results
+          allure_history: allure-history
+          gh_pages: gh-pages
+          keep_reports: 20
 
       - name: Deploy Allure Report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: always() && github.event_name == 'push'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: allure-report
+          publish_dir: allure-history
           publish_branch: gh-pages
-
-      - name: Upload Allure Report Artifact
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: allure-report
-          path: allure-history/
-          retention-days: 30
 
       - name: Upload Playwright Failure Results
         uses: actions/upload-artifact@v4

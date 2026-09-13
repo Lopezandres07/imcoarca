@@ -12,7 +12,7 @@ export default defineConfig({
   workers: process.env.WORKERS ? parseInt(process.env.WORKERS) : (process.env.CI ? 1 : 2),
   reporter: [
     ["list"],
-    ["allure-playwright"]
+    ["allure-playwright", { outputFolder: 'allure-results' }]
   ],
 
 
