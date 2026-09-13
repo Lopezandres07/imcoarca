@@ -51,7 +51,6 @@ test.describe("Invoices Module", () => {
     });
     expect(clientRes.ok()).toBeTruthy();
     const clientData = await clientRes.json();
-    console.log("CLIENT DATA", clientData);
 
     testClientCode = String(clientData.data.customer_code);
     testClientName = clientData.data.name;
@@ -74,7 +73,6 @@ test.describe("Invoices Module", () => {
     });
     expect(productRes.ok()).toBeTruthy();
     const productData = await productRes.json();
-    console.log("PRODUCT DATA", productData);
 
     testArticleCode = String(productData.data.sku);
     testArticleId = productData.data.id;
