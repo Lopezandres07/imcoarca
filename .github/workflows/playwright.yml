@@ -1,0 +1,64 @@
+name: Playwright E2E Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: test_e2e/package-lock.json
+
+      - name: Install dependencies
+        working-directory: test_e2e
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        working-directory: test_e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        working-directory: test_e2e
+        env:
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          SELLER_EMAIL: ${{ secrets.SELLER_EMAIL }}
+          SELLER_PASSWORD: ${{ secrets.SELLER_PASSWORD }}
+          API_URL: ${{ secrets.API_URL }}
+          CI: true
+        run: npm run test
+
+      - name: Generate Allure Report
+        working-directory: test_e2e
+        if: always()
+        run: npm run report:generate
+
+      - name: Upload Allure Report Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-report
+          path: test_e2e/allure-report/
+          retention-days: 30
+
+      - name: Upload Playwright Failure Results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: test_e2e/test-results/
+          retention-days: 14
