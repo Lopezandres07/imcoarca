@@ -1,11 +1,11 @@
 CLIENT DATA {
   data: {
-    id: 19844,
-    name: 'CLI-TEST-1789319031393',
-    email: 'test.client.1789319031393@automation.test',
-    phone: '11-5824-3051',
+    id: 19877,
+    name: 'CLI-TEST-1789332856688',
+    email: 'test.client.1789332856688@automation.test',
+    phone: '11-4075-0137',
     whatsapp: null,
-    cuit: '30415330398',
+    cuit: '27612940342',
     address: null,
     customer_code: '00323',
     shipaddress: null,
@@ -91,29 +91,29 @@ CLIENT DATA {
     relatedTaxes: [],
     taxes: [],
     advance_balance: 0,
-    created_at: '2026-09-13 17:03:51',
-    updated_at: '2026-09-13 17:03:51'
+    created_at: '2026-09-13 20:54:16',
+    updated_at: '2026-09-13 20:54:16'
   }
 }
 PRODUCT DATA {
   data: {
-    id: 7792,
-    name: 'ART-TEST-1789319031496',
-    sku: '1722.2300.0128',
+    id: 7796,
+    name: 'ART-TEST-1789332856788',
+    sku: '9618.9197.1316',
     description: null,
     is_active: true,
     line: '37',
     line_name: 'LINEA 1',
     category: '53',
     category_name: 'CATEGORIA 1',
-    cost_price: '24874.00',
+    cost_price: '36145.00',
     purchase_price: null,
     purchase_cost: null,
     cost_currency: null,
     cost_date: '2026-09-13',
-    sale_price: '33580.00',
+    sale_price: '48796.00',
     multiplier: null,
-    stock_quantity: 365,
+    stock_quantity: 225,
     on_order_quantity: null,
     min_stock_level: null,
     supplier_delay_days: null,
@@ -128,7 +128,7 @@ PRODUCT DATA {
     compute_3: null,
     owner_manufacturing: null,
     relatedTaxes: [],
-    created_at: '2026-09-13 17:03:51',
-    updated_at: '2026-09-13 17:03:51'
+    created_at: '2026-09-13 20:54:16',
+    updated_at: '2026-09-13 20:54:16'
   }
 }
