@@ -1,0 +1,95 @@
+info:
+  name: 04-Update-Cliente
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/clients/{{clienteId}}"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+    - name: Content-Type
+      value: application/json
+    - name: Accept
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Cliente API Bruno Actualizado",
+        "cuit": "20-12345678-6",
+        "email": "",
+        "phone": "",
+        "whatsapp": "",
+        "cbu": null,
+        "collection_contact": "",
+        "collection_email": "",
+        "collection_phone": "",
+        "collection_portal_password": "",
+        "collection_portal_url": "",
+        "collection_portal_username": "",
+        "estado": "Activo",
+        "serie": "",
+        "startdate": "2026-09-02",
+        "tax": "",
+        "taxes": [],
+        "zone": null,
+        "zone_name": null
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Debe responder 200 OK", function () {
+            expect(res.status).to.equal(200);
+        });
+
+        test("Debe retornar la propiedad data", function () {
+            expect(res.body).to.have.property("data");
+        });
+
+        test("Debe mantener el identificador del cliente", function () {
+            expect(res.body.data.id).to.equal(
+                Number(bru.getEnvVar("clienteId"))
+            );
+        });
+
+        test("Debe actualizar el nombre del cliente", function () {
+            expect(res.body.data.name).to.equal(
+                "Cliente API Bruno Actualizado"
+            );
+        });
+
+        test("Debe mantener el CUIT del cliente", function () {
+            expect(res.body.data.cuit).to.equal("20-12345678-6");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+      description: La actualización del cliente debe responder exitosamente con código 200
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
+    - expression: res.body.data.id
+      operator: eq
+      value: "{{clienteId}}"
+      description: El identificador retornado debe corresponder al cliente actualizado
+    - expression: res.body.data.name
+      operator: eq
+      value: Cliente API Bruno Actualizado
+      description: El nombre del cliente debe reflejar la actualización realizada
+    - expression: res.body.data.cuit
+      operator: eq
+      value: 20-12345678-6
+      description: El CUIT del cliente debe mantenerse sin cambios
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

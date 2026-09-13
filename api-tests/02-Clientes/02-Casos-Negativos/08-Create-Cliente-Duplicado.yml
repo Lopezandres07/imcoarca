@@ -1,0 +1,62 @@
+info:
+  name: 08-Create-Cliente-Duplicado
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{baseUrl}}/clients"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+    - name: Content-Type
+      value: application/json
+    - name: Accept
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Cliente Duplicado Bruno",
+        "cuit": "20-87654321-0",
+        "startdate": "2026-09-13",
+        "status": "Activo"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 201 && res.body?.data?.id) {
+          bru.setEnvVar("clienteDuplicadoSegundoId", res.body.data.id);
+
+          console.log(
+            "Segundo cliente duplicado creado con ID:",
+            res.body.data.id
+          );
+        }
+    - type: tests
+      code: |-
+        test("Debe rechazar un cliente con mismo nombre y CUIT (duplicado)", function () {
+            expect(res.status).to.equal(422);
+        });
+
+        test("Debe retornar un error de validación", function () {
+            expect(res.body).to.have.property("errors");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "422"
+      description: La creación de un cliente con el mismo nombre y CUIT de un cliente existente debe ser rechazada con código 422
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
