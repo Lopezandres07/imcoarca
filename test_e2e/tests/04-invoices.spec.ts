@@ -106,7 +106,7 @@ test.describe("Invoices Module", () => {
       await expect(invoicePage.clientCode).toBeVisible()
     });
 
-    await test.step("Issue new Invoice", async () => {
+    await test.step("Create new Invoice", async () => {
       invoiceTotal = await invoicePage.createInvoice({
         clientCode: testClientCode,
         vendedorCode: "01",
