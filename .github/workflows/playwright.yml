@@ -53,19 +53,16 @@ jobs:
           path: gh-pages
 
       - name: Generate Allure Report
-        uses: simple-elf/allure-report-action@v1.9
+        working-directory: test_e2e
         if: always()
-        with:
-          allure_results: test_e2e/allure-results
-          allure_history: allure-history
-          keep_reports: 20
+        run: npm run report:generate
 
       - name: Deploy Allure Report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: always() && github.event_name == 'push'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: allure-history
+          publish_dir: allure-report
           publish_branch: gh-pages
 
       - name: Upload Allure Report Artifact
