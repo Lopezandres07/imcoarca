@@ -53,7 +53,7 @@ jobs:
           path: gh-pages
 
       - name: Generate Allure Report
-        uses: simple-elf/allure-report-action@v1.7
+        uses: simple-elf/allure-report-action@v1.9
         if: always()
         with:
           allure_results: test_e2e/allure-results
