@@ -1,11 +1,11 @@
 info:
-  name: 02-Login-Vendedor
+  name: 04-Login-Vendedor
   type: http
-  seq: 2
+  seq: 4
 
 http:
   method: POST
-  url: "{{baseUrl}}/api/login"
+  url: "{{baseUrl}}/login"
   headers:
     - name: Content-Type
       value: application/json
@@ -46,9 +46,32 @@ runtime:
             expect(res.body.user.roles[0].name).to.equal("Vendedor");
         });
 
-        test("Debe tener permiso para visualizar clientes", function () {
+        test("Tiene permiso para visualizar clientes", function () {
             expect(res.body.permissions).to.include("clientes.view");
         });
+
+        test("Tiene permiso para crear clientes", function () {
+            expect(res.body.permissions).to.include("clientes.create");
+        });
+
+        test("Tiene permiso para editar clientes", function () {
+            expect(res.body.permissions).to.include("clientes.edit");
+        });
+
+        test("No se declara el permiso para eliminar clientes", function () {
+            expect(res.body.permissions).to.not.include("clientes.delete");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+      description: La autenticación debe responder exitosamente
+    - expression: res.body
+      operator: isJson
+      description: El body debe ser un JSON válido
+    - expression: res.body.access_token
+      operator: isString
+      description: El token de acceso debe ser un string
 
 settings:
   encodeUrl: true

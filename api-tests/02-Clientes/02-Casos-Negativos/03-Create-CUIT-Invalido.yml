@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/api/clients"
+  url: "{{baseUrl}}/clients"
   headers:
     - name: Authorization
       value: Bearer {{token}}
@@ -43,9 +43,22 @@ runtime:
   scripts:
     - type: tests
       code: |-
-        test("Debe rechazar un CUIT con formato inválido", function () {
-            expect(res.status).to.equal(422);
+        test("Debe retornar un error de validación", function () {
+            expect(res.body).to.have.property("errors");
         });
+
+        test("Debe informar error de validación en cuit", function () {
+            expect(res.body.errors).to.have.property("cuit");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "422"
+      description: La creación con un CUIT inválido debe ser rechazada con código 422
+    - expression: res.body
+      operator: eq
+      value: isJson
+      description: El body de la respuesta debe ser un JSON válido
 
 settings:
   encodeUrl: true

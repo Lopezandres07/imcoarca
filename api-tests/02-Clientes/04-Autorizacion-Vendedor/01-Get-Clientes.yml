@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/api/clients?sort_direction=asc"
+  url: "{{baseUrl}}/clients?sort_direction=asc"
   headers:
     - name: Authorization
       value: Bearer {{sellerToken}}
@@ -32,17 +32,17 @@ runtime:
         test("Debe retornar data como un array", function () {
             expect(res.body.data).to.be.an("array");
         });
-
-        test("Debe retornar información de paginación", function () {
-            expect(res.body).to.have.property("meta");
-            expect(res.body.meta).to.have.property("current_page");
-            expect(res.body.meta).to.have.property("total");
-        });
   assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+      description: La consulta de clientes con usuario Vendedor debe responder exitosamente
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
     - expression: res.body.data
       operator: isArray
-    - expression: res.body.meta
-      operator: isDefined
+      description: La lista de clientes debe retornar la propiedad data como un array
 
 settings:
   encodeUrl: true

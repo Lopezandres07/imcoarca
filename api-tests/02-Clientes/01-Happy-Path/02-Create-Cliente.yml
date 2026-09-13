@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/api/clients"
+  url: "{{baseUrl}}/clients"
   headers:
     - name: Authorization
       value: Bearer {{token}}
@@ -48,13 +48,46 @@ runtime:
 
           console.log("clienteId guardado correctamente");
         }
+    - type: tests
+      code: |-
+        test("Debe responder 201 Created", function () {
+            expect(res.status).to.equal(201);
+        });
+
+        test("Debe retornar la propiedad data", function () {
+            expect(res.body).to.have.property("data");
+        });
+
+        test("Debe retornar un id para el cliente creado", function () {
+            expect(res.body.data).to.have.property("id");
+        });
+
+        test("Debe crear el cliente con el nombre enviado", function () {
+            expect(res.body.data.name).to.equal("Cliente API Bruno Prueba");
+        });
+
+        test("Debe crear el cliente con el CUIT enviado", function () {
+            expect(res.body.data.cuit).to.equal("20-12345678-6");
+        });
   assertions:
     - expression: res.body.data.name
       operator: eq
       value: Cliente API Bruno Prueba
+      description: El nombre del cliente creado debe coincidir con el nombre enviado
     - expression: res.body.data.cuit
       operator: eq
       value: 20-12345678-6
+      description: El CUIT del cliente creado debe coincidir con el CUIT enviado
+    - expression: res.status
+      operator: eq
+      value: "201"
+      description: La creación del cliente debe responder exitosamente con código 201
+    - expression: res.body
+      operator: isJson
+      description: El body debe ser un JSON válido
+    - expression: res.body.data.id
+      operator: isNumber
+      description: El cliente creado debe retornar un identificador numérico
 
 settings:
   encodeUrl: true

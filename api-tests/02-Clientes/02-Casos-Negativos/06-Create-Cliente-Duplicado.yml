@@ -1,7 +1,7 @@
 info:
-  name: 01-Create-sin-nombre
+  name: 06-Create-Cliente-Duplicado
   type: http
-  seq: 1
+  seq: 6
 
 http:
   method: POST
@@ -17,7 +17,7 @@ http:
     type: json
     data: |-
       {
-        "name": "",
+        "name": "Cliente API Bruno Prueba",
         "cuit": "20-12345678-6",
         "email": "",
         "phone": "",
@@ -43,32 +43,21 @@ runtime:
   scripts:
     - type: tests
       code: |-
-        test("Debe responder 422 Unprocessable Entity", function () {
+        test("Debe rechazar un cliente con mismo nombre y CUIT (duplicado)", function () {
             expect(res.status).to.equal(422);
         });
 
-        test("Debe informar error de validación en name", function () {
-            expect(res.body.errors).to.have.property("name");
-        });
-
-        test("Debe indicar que name es obligatorio", function () {
-            expect(res.body.errors.name[0]).to.equal("The name field is required.");
+        test("Debe retornar un error de validación", function () {
+            expect(res.body).to.have.property("errors");
         });
   assertions:
     - expression: res.status
       operator: eq
       value: "422"
-      description: La creación sin nombre debe ser rechazada con código 422
+      description: La creación de un cliente con el mismo nombre y CUIT de un cliente existente debe ser rechazada con código 422
     - expression: res.body
       operator: isJson
       description: El body de la respuesta debe ser un JSON válido
-    - expression: res.body.errors.name
-      operator: isArray
-      description: La respuesta debe incluir errores de validación para el campo name
-    - expression: res.body.errors.name[0]
-      operator: eq
-      value: The name field is required.
-      description: El mensaje debe indicar que el nombre es obligatorio
 
 settings:
   encodeUrl: true

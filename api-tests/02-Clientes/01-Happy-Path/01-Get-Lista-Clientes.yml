@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/api/clients?sort_direction=asc"
+  url: "{{baseUrl}}/clients?sort_direction=asc"
   headers:
     - name: Authorization
       value: Bearer {{token}}
@@ -18,9 +18,43 @@ http:
   auth: inherit
 
 runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Debe responder 200 OK", function () {
+            expect(res.status).to.equal(200);
+        });
+
+        test("Debe retornar la propiedad data", function () {
+            expect(res.body).to.have.property("data");
+        });
+
+        test("Debe retornar data como un array", function () {
+            expect(res.body.data).to.be.an("array");
+        });
+
+        test("Debe retornar información de paginación", function () {
+            expect(res.body).to.have.property("meta");
+            expect(res.body.meta).to.have.property("current_page");
+            expect(res.body.meta).to.have.property("total");
+        });
   assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+      description: La consulta debe responder exitosamente
+    - expression: res.body
+      operator: isJson
+      description: El body debe ser un JSON válido
     - expression: res.body.data
       operator: isArray
+      description: La propiedad data debe ser un array
+    - expression: res.body.meta.current_page
+      operator: isNumber
+      description: La página actual debe ser numérica
+    - expression: res.body.meta.total
+      operator: isNumber
+      description: El total de registros debe ser numérico
 
 settings:
   encodeUrl: true

@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/api/clients/{{clienteId}}"
+  url: "{{baseUrl}}/clients/{{clienteId}}"
   headers:
     - name: Authorization
       value: Bearer {{token}}
@@ -14,13 +14,50 @@ http:
   auth: inherit
 
 runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Debe responder 200 OK", function () {
+            expect(res.status).to.equal(200);
+        });
+
+        test("Debe retornar la propiedad data", function () {
+            expect(res.body).to.have.property("data");
+        });
+
+        test("Debe retornar el cliente solicitado", function () {
+            expect(res.body.data.id).to.equal(
+                Number(bru.getEnvVar("clienteId"))
+            );
+        });
+
+        test("Debe retornar el nombre correcto del cliente", function () {
+            expect(res.body.data.name).to.equal("Cliente API Bruno Prueba");
+        });
+
+        test("Debe retornar el CUIT correcto del cliente", function () {
+            expect(res.body.data.cuit).to.equal("20-12345678-6");
+        });
   assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+      description: La consulta del cliente debe responder exitosamente con código 200
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
     - expression: res.body.data.id
       operator: eq
       value: "{{clienteId}}"
+      description: El identificador retornado debe corresponder al cliente solicitado
     - expression: res.body.data.name
       operator: eq
       value: Cliente API Bruno Prueba
+      description: El nombre retornado debe coincidir con el cliente creado
+    - expression: res.body.data.cuit
+      operator: eq
+      value: 20-12345678-6
+      description: El CUIT retornado debe coincidir con el cliente creado
 
 settings:
   encodeUrl: true

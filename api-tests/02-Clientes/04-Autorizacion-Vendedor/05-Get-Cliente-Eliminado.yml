@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/api/clients/19722"
+  url: "{{baseUrl}}/clients/{{sellerClienteId}}"
   headers:
     - name: Authorization
       value: Bearer {{sellerToken}}
@@ -30,6 +30,17 @@ runtime:
                 "No query results for model"
             );
         });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "404"
+      description: La consulta posterior debe confirmar que el cliente fue eliminado
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
+    - expression: res.body.message
+      operator: isString
+      description: La respuesta debe incluir un mensaje indicando que el cliente no existe
 
 settings:
   encodeUrl: true

@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/api/clients"
+  url: "{{baseUrl}}/clients"
   headers:
     - name: Authorization
       value: Bearer {{token}}
@@ -56,6 +56,21 @@ runtime:
                 "The name field must be a string."
             );
         });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "422"
+      description: La creación con un tipo de dato inválido debe ser rechazada con código 422
+    - expression: res.body
+      operator: isJson
+      description: El body de la respuesta debe ser un JSON válido
+    - expression: res.body.errors.name
+      operator: isArray
+      description: La respuesta debe incluir errores de validación para el campo name
+    - expression: res.body.errors.name[0]
+      operator: eq
+      value: The name field must be a string.
+      description: El mensaje debe indicar que el campo name debe ser de tipo string
 
 settings:
   encodeUrl: true

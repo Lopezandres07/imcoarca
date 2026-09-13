@@ -4,7 +4,7 @@
 
 Frontend: https://imcoarca.leonardojose.dev/
 
-Base URL API: https://back-imcoarca.leonardojose.dev
+Base URL API: https://back-imcoarca.leonardojose.dev/api
 
 Autenticación: Bearer Token.
 
@@ -22,8 +22,10 @@ En Bruno se configuraron las siguientes variables de entorno:
 - ``baseUrl``
 - ``token``
 - ``clienteId``
+- ``sellerToken``
+- ``sellerClienteId``
 
-token se obtiene dinámicamente mediante el ``Login`` y ``clienteId`` se obtiene dinámicamente al crear un cliente.
+``token`` se obtiene dinámicamente mediante el Login Admin y ``sellerToken`` mediante el Login Vendedor. ``clienteId`` y ``sellerClienteId`` se obtienen dinámicamente al crear los clientes utilizados en sus respectivos flujos.
 
 ## 2. Autenticación
 01 – Login
@@ -49,8 +51,6 @@ Respuesta relevante
   "token_type": "Bearer"
 }
 
-Por seguridad, el valor real de access_token no debe almacenarse en la documentación ni subirse al repositorio.
-
 Post Response Script
 
 El token se almacena automáticamente en el Environment QA:
@@ -64,6 +64,7 @@ if (res.status === 200 && res.body?.access_token) {
 
 El Happy Path valida el ciclo CRUD completo utilizando un mismo cliente:
 
+```
 Login
   ↓
 Create Cliente
@@ -75,6 +76,8 @@ Update Cliente
 Delete Cliente
   ↓
 Get Cliente Eliminado
+```
+
 02 – Crear Cliente
 
 Objetivo: comprobar que la API permite crear un cliente con datos válidos.
@@ -267,7 +270,7 @@ El ID específico puede variar porque {{clienteId}} se genera dinámicamente.
 |Eliminar cliente	|DELETE	|``/api/clients/{{clienteId}}``	|``204``|
 |Consultar cliente eliminado|	GET	|``/api/clients/{{clienteId}}``| ``404``|
 
-Una observación importante: 06-Get-Cliente-Eliminado es técnicamente una prueba negativa, aunque la estamos utilizando para cerrar el Happy Path. El 404 es el resultado correcto porque queremos demostrar que el DELETE tuvo efecto.
+Una observación importante: 06-Get-Cliente-Eliminado es técnicamente una prueba negativa, aunque la estamos utilizando para cerrar el Happy Path. El 404 es el resultado correcto porque se quiere demostrar que el DELETE tuvo efecto.
 
 ## 5. Headers por tipo de operación
 
@@ -288,12 +291,14 @@ Authorization: Bearer {{token}}
 Accept: application/json
 
 ## 6. Variables utilizadas
+
 |Variable|	Descripción	|Origen|
 |--------|--------------|------|
 |``baseUrl``|URL base del backend|	Environment QA|
 |``token``	|Token de autenticación	|Response del Login|
 |``clienteId``	|ID del cliente utilizado en el CRUD	|Response de Create Cliente|
-
+|``sellerToken``|Token de autenticación del usuario Vendedor|Response del Login Vendedor|
+|``sellerClienteId``|ID del cliente utilizado en las pruebas del Vendedor|Response de Create Cliente del Vendedor|
 
 ---
 
@@ -301,24 +306,26 @@ Accept: application/json
 
 | ID | Request | Caso | Entrada | Status esperado | Status obtenido | Resultado |
 |---|---|---|---|---:|---:|---|
+| AU-01 | `01-Login-Datos-Vacios.yml` | Login con datos vacíos | `email = ""`, `password = ""` | `422` | `422` | PASS ✅ |
+| AU-02 | `02-Login-Datos-Invalidos.yml` | Login con credenciales inválidas | Credenciales completas pero incorrectas | `401` | `401` | PASS ✅ |
+| AU-03 | `03-Login-Admin.yml` | Login Admin | Credenciales válidas | `200` | `200` | PASS ✅ |
+| AU-04 | `04-Login-Vendedor.yml` | Login Vendedor | Credenciales válidas | `200` | `200` | PASS ✅ |
 | CN-01 | `01-Create-Sin-Nombre.yml` | Crear cliente sin nombre | `name = ""` | `422` | `422` | PASS ✅ |
 | CN-02 | `02-Create-Sin-CUIT.yml` | Crear cliente sin CUIT | `cuit = ""` | `422` | `422` | PASS ✅ |
 | CN-03 | `03-Create-CUIT-Invalido.yml` | Crear cliente con CUIT inválido | `cuit = "ABC123"` | `422` | `201` | FAIL ❌ |
 | CN-04 | `04-Create-Email-Invalido.yml` | Crear cliente con email inválido | `email = "correo-invalido"` | `422` | `422` | PASS ✅ |
 | CN-05 | `05-Create-Tipo-Dato-Invalido.yml` | Crear cliente con tipo de dato inválido | `name = 12345` | `422` | `422` | PASS ✅ |
-| CN-06 | `06-Get-Cliente-Inexistente.yml` | Consultar cliente inexistente | `GET /api/clients/99999999` | `404` | `404` | PASS ✅ |
-| CN-07 | `07-Update-Cliente-Inexistente.yml` | Actualizar cliente inexistente | `PUT /api/clients/99999999` | `404` | `404` | PASS ✅ |
-| CN-08 | `08-Delete-Cliente-Inexistente.yml` | Eliminar cliente inexistente | `DELETE /api/clients/99999999` | `404` | `404` | PASS ✅ |
+| CN-06 | `06-Create-Cliente-Duplicado.yml` | Crear cliente duplicado | Mismo `name` y mismo `cuit` que un cliente existente | `422` | `201` | FAIL ❌ |
+| CN-07 | `07-Get-Cliente-Inexistente.yml` | Consultar cliente inexistente | `GET /api/clients/99999999` | `404` | `404` | PASS ✅ |
+| CN-08 | `08-Update-Cliente-Inexistente.yml` | Actualizar cliente inexistente | `PUT /api/clients/99999999` | `404` | `404` | PASS ✅ |
+| CN-09 | `09-Eliminar-Cliente-Inexistente.yml` | Eliminar cliente inexistente | `DELETE /api/clients/99999999` | `404` | `404` | PASS ✅ |
 | SE-01 | `01-Get-Sin-Token.yml` | Consultar clientes sin token | Sin header `Authorization` | `401` | `401` | PASS ✅ |
 | SE-02 | `02-Get-Token-Invalido.yml` | Consultar clientes con token inválido | `Bearer token_invalido_12345` | `401` | `401` | PASS ✅ |
-| AU-02 | `01-Login-Vendedor.yml` | Login Vendedor | Credenciales válidas | `200` | `200` | PASS ✅ |
-| AV-01 | `02-Get-Clientes.yml` | Consultar clientes como Vendedor | `Bearer {{sellerToken}}` | `200` | `200` | PASS ✅ |
-| AV-02 | `03-Create-Cliente.yml` | Crear cliente como Vendedor | Payload válido | `201` | `201` | PASS ✅ |
-| AV-03 | `04-Update-Cliente.yml` | Actualizar cliente como Vendedor | Payload válido | `200` | `200` | PASS ✅ |
-| AV-04 | `05-Delete-Cliente.yml` | Eliminar cliente como Vendedor sin permiso `clientes.delete` | `DELETE /api/clients/{{sellerClienteId}}` | `403` | `204` | FAIL ❌ |
-| AV-05 | `Get-Cliente-Eliminado`* | Verificar cliente eliminado por Vendedor | `GET /api/clients/19722` | `404` | `404` | PASS ✅ |
-
-> \* En la estructura compartida no aparece una request separada para verificar el cliente eliminado dentro de `Autorizacion-Vendedor`. Por eso se conserva el nombre descriptivo para AV-05.
+| AV-01 | `01-Get-Clientes.yml` | Consultar clientes como Vendedor | `Bearer {{sellerToken}}` | `200` | `200` | PASS ✅ |
+| AV-02 | `02-Create-Cliente.yml` | Crear cliente como Vendedor | Payload válido | `201` | `201` | PASS ✅ |
+| AV-03 | `03-Update-Cliente.yml` | Actualizar cliente como Vendedor | Payload válido | `200` | `200` | PASS ✅ |
+| AV-04 | `04-Delete-Cliente.yml` | Eliminar cliente como Vendedor sin permiso `clientes.delete` | `DELETE /api/clients/{{sellerClienteId}}` | `403` | `204` | FAIL ❌ |
+| AV-05 | `05-Get-Cliente-Eliminado.yml` | Verificar cliente eliminado por Vendedor | `GET /api/clients/{{sellerClienteId}}` | `404` | `404` | PASS ✅ |
 
 ---
 
@@ -375,7 +382,19 @@ Accept: application/json
 - **Mensaje**: `"The name field must be a string."`
 - **Estado**: PASS ✅
 
-### 06-Get-Cliente-Inexistente.yml
+### 06-Create-Cliente-Duplicado.yml
+
+- **Caso**: Crear cliente duplicado
+- **Precondición**: existe previamente un cliente con `name = "Cliente API Bruno Prueba"` y `cuit = "20-12345678-6"`
+- **Criterio de duplicidad**: para este caso se considera duplicado un registro con el mismo `name` y el mismo `cuit` que un cliente previamente registrado
+- **Entrada**: `name = "Cliente API Bruno Prueba"`, `cuit = "20-12345678-6"`
+- **Resultado esperado**: la API rechaza la creación del cliente duplicado
+- **Status esperado**: `422`
+- **Resultado real**: `201 Created`
+- **Estado**: FAIL ❌
+- **Hallazgo**: la API permite crear nuevamente un cliente con el mismo nombre y CUIT, falta validación de duplicidad o unicidad.
+
+### 07-Get-Cliente-Inexistente.yml
 
 - **Caso**: Consultar cliente inexistente
 - **Entrada**: `GET /api/clients/99999999`
@@ -385,7 +404,7 @@ Accept: application/json
 - **Mensaje**: `"No query results for model [App\\Models\\Client] 99999999"`
 - **Estado**: PASS ✅
 
-### 07-Update-Cliente-Inexistente.yml
+### 08-Update-Cliente-Inexistente.yml
 
 - **Caso**: Actualizar cliente inexistente
 - **Entrada**: `PUT /api/clients/99999999` con payload válido
@@ -395,7 +414,7 @@ Accept: application/json
 - **Mensaje**: `"No query results for model [App\\Models\\Client] 99999999"`
 - **Estado**: PASS ✅
 
-### 08-Delete-Cliente-Inexistente.yml
+### 09-Eliminar-Cliente-Inexistente.yml
 
 - **Caso**: Eliminar cliente inexistente
 - **Entrada**: `DELETE /api/clients/99999999`
@@ -431,9 +450,34 @@ Accept: application/json
 
 ---
 
+## Casos negativos - Autenticación
+
+### 01-Login-Datos-Vacios.yml
+
+- **Caso**: Iniciar sesión con email y contraseña vacíos
+- **Entrada**: `email = ""`, `password = ""`
+- **Resultado esperado**: la API rechaza la autenticación y valida los campos obligatorios
+- **Status esperado**: `422`
+- **Resultado real**: `422`
+- **Mensaje**: `"Los datos proporcionados no son válidos."`
+- **Errores**: `"The email field is required."` y `"The password field is required."`
+- **Estado**: PASS ✅
+
+### 02-Login-Datos-Invalidos.yml
+
+- **Caso**: Iniciar sesión con credenciales inválidas
+- **Entrada**: email con formato válido y contraseña informada, pero credenciales incorrectas
+- **Resultado esperado**: la API rechaza la autenticación
+- **Status esperado**: `401`
+- **Resultado real**: `401`
+- **Mensaje**: `"Las credenciales proporcionadas son incorrectas."`
+- **Estado**: PASS ✅
+
+---
+
 ## Autorización - Vendedor
 
-### 01-Login-Vendedor.yml
+### 04-Login-Vendedor.yml
 
 - **Caso**: Iniciar sesión con usuario Vendedor
 - **Entrada**: `POST /api/login` con credenciales válidas del usuario Vendedor
@@ -443,7 +487,7 @@ Accept: application/json
 - **Mensaje**: se retorna `access_token` con `token_type = "Bearer"` y el usuario posee rol `"Vendedor"`
 - **Estado**: PASS ✅
 
-### 02-Get-Clientes.yml
+### 01-Get-Clientes.yml
 
 - **Caso**: Consultar listado de clientes con usuario Vendedor
 - **Entrada**: `GET /api/clients?sort_direction=asc` con `Authorization: Bearer {{sellerToken}}`
@@ -453,7 +497,7 @@ Accept: application/json
 - **Mensaje**: se retorna correctamente el listado paginado de clientes
 - **Estado**: PASS ✅
 
-### 03-Create-Cliente.yml
+### 02-Create-Cliente.yml
 
 - **Caso**: Crear cliente con usuario Vendedor
 - **Entrada**: `POST /api/clients` con payload válido y `Authorization: Bearer {{sellerToken}}`
@@ -463,7 +507,7 @@ Accept: application/json
 - **Mensaje**: se crea correctamente el cliente `"Cliente Vendedor Bruno"` y se retorna su identificador
 - **Estado**: PASS ✅
 
-### 04-Update-Cliente.yml
+### 03-Update-Cliente.yml
 
 - **Caso**: Actualizar cliente con usuario Vendedor
 - **Entrada**: `PUT /api/clients/{{sellerClienteId}}` con payload válido y `Authorization: Bearer {{sellerToken}}`
@@ -473,7 +517,7 @@ Accept: application/json
 - **Mensaje**: se actualiza correctamente el nombre a `"Cliente Vendedor Bruno Actualizado"`
 - **Estado**: PASS ✅
 
-### 05-Delete-Cliente.yml
+### 04-Delete-Cliente.yml
 
 - **Caso**: Eliminar cliente con usuario Vendedor sin permiso `clientes.delete`
 - **Entrada**: `DELETE /api/clients/{{sellerClienteId}}` con `Authorization: Bearer {{sellerToken}}`
@@ -484,12 +528,12 @@ Accept: application/json
 - **Estado**: FAIL ❌
 - **Hallazgo**: durante las pruebas con el rol Vendedor se identificó que la API declara los permisos `clientes.view`, `clientes.create` y `clientes.edit`, pero no `clientes.delete`. Sin embargo, al ejecutar una solicitud `DELETE` sobre un cliente utilizando el token del Vendedor, la API respondió `204 No Content` y una consulta posterior confirmó que el registro había sido eliminado. Esto evidencia una posible ausencia o incorrecta aplicación del control de autorización en el endpoint `DELETE /api/clients/{id}`.
 
-### Get-Cliente-Eliminado
+### 05-Get-Cliente-Eliminado.yml
 
 - **Caso**: Verificar eliminación de cliente realizada por usuario Vendedor
-- **Entrada**: `GET /api/clients/19722` con `Authorization: Bearer {{sellerToken}}`
+- **Entrada**: `GET /api/clients/{{sellerClienteId}}` con `Authorization: Bearer {{sellerToken}}`
 - **Resultado esperado**: el cliente eliminado ya no debe existir
 - **Status esperado**: `404`
 - **Resultado real**: `404`
-- **Mensaje**: `"No query results for model [App\\Models\\Client] 19722"`
+- **Mensaje**: `"No query results for model [App\\Models\\Client] ..."`
 - **Estado**: PASS ✅
