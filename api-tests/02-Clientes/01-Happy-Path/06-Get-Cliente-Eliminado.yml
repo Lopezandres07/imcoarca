@@ -40,9 +40,6 @@ runtime:
       description: El body de la respuesta debe ser un JSON válido
     - expression: res.body.message
       operator: isString
-    - expression: ""
-      operator: eq
-      value: ""
       description: La respuesta debe incluir un mensaje de error
 
 settings:

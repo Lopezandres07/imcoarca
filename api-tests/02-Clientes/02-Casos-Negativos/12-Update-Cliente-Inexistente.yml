@@ -1,11 +1,11 @@
 info:
-  name: 06-Create-Cliente-Duplicado
+  name: 12-Update-Cliente-Inexistente
   type: http
-  seq: 6
+  seq: 12
 
 http:
-  method: POST
-  url: "{{baseUrl}}/clients"
+  method: PUT
+  url: "{{baseUrl}}/clients/99999999"
   headers:
     - name: Authorization
       value: Bearer {{token}}
@@ -17,9 +17,9 @@ http:
     type: json
     data: |-
       {
-        "name": "Cliente API Bruno Prueba",
+        "name": "Cliente Inexistente Actualizado",
         "cuit": "20-12345678-6",
-        "email": "",
+        "email": "cliente@test.com",
         "phone": "",
         "whatsapp": "",
         "cbu": null,
@@ -43,21 +43,30 @@ runtime:
   scripts:
     - type: tests
       code: |-
-        test("Debe rechazar un cliente con mismo nombre y CUIT (duplicado)", function () {
-            expect(res.status).to.equal(422);
+        test("Debe responder 404 Not Found", function () {
+            expect(res.status).to.equal(404);
         });
 
-        test("Debe retornar un error de validación", function () {
-            expect(res.body).to.have.property("errors");
+        test("Debe retornar un mensaje de error", function () {
+            expect(res.body).to.have.property("message");
+        });
+
+        test("Debe indicar que el cliente no existe", function () {
+            expect(res.body.message).to.include(
+                "No query results for model"
+            );
         });
   assertions:
     - expression: res.status
       operator: eq
-      value: "422"
-      description: La creación de un cliente con el mismo nombre y CUIT de un cliente existente debe ser rechazada con código 422
+      value: "404"
+      description: La actualización de un cliente inexistente debe responder con código 404
     - expression: res.body
       operator: isJson
       description: El body de la respuesta debe ser un JSON válido
+    - expression: res.body.message
+      operator: isString
+      description: La respuesta debe incluir un mensaje de error
 
 settings:
   encodeUrl: true

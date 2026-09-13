@@ -1,0 +1,34 @@
+info:
+  name: 10-Cleanup-Cliente-Duplicado-Copia
+  type: http
+  seq: 10
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/clients/{{clienteDuplicadoSegundoId}}"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+    - name: Accept
+      value: application/json
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Debe eliminar el cliente duplicado creado durante la prueba", function () {
+          expect(res.status).to.equal(204);
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "204"
+      description: El cliente duplicado creado durante la prueba debe eliminarse correctamente
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

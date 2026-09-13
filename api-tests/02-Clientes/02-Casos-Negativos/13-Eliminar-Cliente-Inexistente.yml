@@ -1,10 +1,10 @@
 info:
-  name: 07-Get-Cliente-Inexistente
+  name: 13-Eliminar-Cliente-Inexistente
   type: http
-  seq: 7
+  seq: 13
 
 http:
-  method: GET
+  method: DELETE
   url: "{{baseUrl}}/clients/99999999"
   headers:
     - name: Authorization
@@ -34,7 +34,7 @@ runtime:
     - expression: res.status
       operator: eq
       value: "404"
-      description: La consulta de un cliente inexistente debe responder con código 404
+      description: La eliminación de un cliente inexistente debe responder con código 404
     - expression: res.body
       operator: isJson
       description: El body de la respuesta debe ser un JSON válido

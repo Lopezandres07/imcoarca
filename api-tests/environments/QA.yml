@@ -3,14 +3,26 @@ variables:
   - name: baseUrl
     value: https://back-imcoarca.leonardojose.dev/api
   - name: token
-    value: 4203|xv1NkfDo2kAyWY4fBI6mgdagmqsbEv3hhJWwaPV1e49341d4
+    value: 4451|dwoktS6Zo3uYT9rcKb6GiXCt0vpSLU7Ex2LRFydF96ad9924
   - name: clienteId
     value:
       type: number
-      data: "19773"
+      data: "19871"
   - name: sellerToken
-    value: 4204|7sH6OWD0MYv4rLbyUtUG3fyjNRT1dcuvGg8ORP3A04bf44df
+    value: 4452|vYbO0zJKO0qzYwKbmnpRqVXEPGyUWHBIw9sYXFob8b7d1300
   - name: sellerClienteId
     value:
       type: number
-      data: "19777"
+      data: "19875"
+  - name: clienteDuplicadoId
+    value:
+      type: number
+      data: "19873"
+  - name: clienteDuplicadoSegundoId
+    value:
+      type: number
+      data: "19874"
+  - name: clienteCuitInvalidoId
+    value:
+      type: number
+      data: "19872"

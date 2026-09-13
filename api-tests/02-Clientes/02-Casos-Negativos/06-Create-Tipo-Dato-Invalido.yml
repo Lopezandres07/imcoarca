@@ -1,11 +1,11 @@
 info:
-  name: 08-Update-Cliente-Inexistente
+  name: 06-Create-Tipo-Dato-Invalido
   type: http
-  seq: 8
+  seq: 6
 
 http:
-  method: PUT
-  url: "{{baseUrl}}/clients/99999999"
+  method: POST
+  url: "{{baseUrl}}/clients"
   headers:
     - name: Authorization
       value: Bearer {{token}}
@@ -17,7 +17,7 @@ http:
     type: json
     data: |-
       {
-        "name": "Cliente Inexistente Actualizado",
+        "name": 12345,
         "cuit": "20-12345678-6",
         "email": "cliente@test.com",
         "phone": "",
@@ -43,30 +43,34 @@ runtime:
   scripts:
     - type: tests
       code: |-
-        test("Debe responder 404 Not Found", function () {
-            expect(res.status).to.equal(404);
+        test("Debe responder 422 Unprocessable Entity", function () {
+            expect(res.status).to.equal(422);
         });
 
-        test("Debe retornar un mensaje de error", function () {
-            expect(res.body).to.have.property("message");
+        test("Debe informar error de validación en name", function () {
+            expect(res.body.errors).to.have.property("name");
         });
 
-        test("Debe indicar que el cliente no existe", function () {
-            expect(res.body.message).to.include(
-                "No query results for model"
+        test("Debe indicar que name debe ser un string", function () {
+            expect(res.body.errors.name[0]).to.equal(
+                "The name field must be a string."
             );
         });
   assertions:
     - expression: res.status
       operator: eq
-      value: "404"
-      description: La actualización de un cliente inexistente debe responder con código 404
+      value: "422"
+      description: La creación con un tipo de dato inválido debe ser rechazada con código 422
     - expression: res.body
       operator: isJson
       description: El body de la respuesta debe ser un JSON válido
-    - expression: res.body.message
-      operator: isString
-      description: La respuesta debe incluir un mensaje de error
+    - expression: res.body.errors.name
+      operator: isArray
+      description: La respuesta debe incluir errores de validación para el campo name
+    - expression: res.body.errors.name[0]
+      operator: eq
+      value: The name field must be a string.
+      description: El mensaje debe indicar que el campo name debe ser de tipo string
 
 settings:
   encodeUrl: true

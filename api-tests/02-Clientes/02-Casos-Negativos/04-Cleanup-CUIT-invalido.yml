@@ -1,0 +1,33 @@
+info:
+  name: 04-Cleanup-CUIT-invalido
+  type: http
+  seq: 4
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/clients/{{clienteCuitInvalidoId}}"
+  headers:
+    - name: Authorization
+      value: Bearer {{token}}
+    - name: Accept
+      value: application/json
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Debe eliminar el cliente creado con CUIT inválido", function () {
+          expect(res.status).to.equal(204);
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "204"
+      description: El cliente creado durante la prueba de CUIT inválido debe eliminarse correctamente
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
