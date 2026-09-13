@@ -22,43 +22,101 @@ En Bruno se configuraron las siguientes variables de entorno:
 - ``baseUrl``
 - ``token``
 - ``clienteId``
+- ``clienteCuitInvalidoId``
+- ``clienteDuplicadoId``
+- ``clienteDuplicadoSegundoId``
 - ``sellerToken``
 - ``sellerClienteId``
 
-``token`` se obtiene dinámicamente mediante el Login Admin y ``sellerToken`` mediante el Login Vendedor. ``clienteId`` y ``sellerClienteId`` se obtienen dinámicamente al crear los clientes utilizados en sus respectivos flujos.
+``token`` se obtiene dinámicamente mediante el Login Admin y ``sellerToken`` mediante el Login Vendedor. ``clienteId`` y ``sellerClienteId`` se obtienen dinámicamente al crear los clientes utilizados en sus respectivos flujos. ``clienteCuitInvalidoId`` se utiliza para limpiar el registro creado por error durante la prueba de CUIT inválido. ``clienteDuplicadoId`` y ``clienteDuplicadoSegundoId`` almacenan los IDs del cliente base y de la copia creada durante la prueba de duplicidad.
 
 ## 2. Autenticación
-01 – Login
 
-Objetivo: autenticar un usuario válido y obtener el token utilizado por las siguientes requests.
+La colección inicia con cuatro casos de autenticación. Los dos primeros validan escenarios negativos y los dos siguientes generan los tokens utilizados por los flujos protegidos.
+
+### 01-Login-Datos-Vacios.yml
+
+- **Caso**: Iniciar sesión con email y contraseña vacíos
+- **Entrada**: `email = ""`, `password = ""`
+- **Resultado esperado**: la API rechaza la autenticación y valida los campos obligatorios
+- **Status esperado**: `422`
+- **Resultado real**: `422`
+- **Mensaje**: `"Los datos proporcionados no son válidos."`
+- **Errores**: `"The email field is required."` y `"The password field is required."`
+- **Estado**: PASS ✅
+
+### 02-Login-Datos-Invalidos.yml
+
+- **Caso**: Iniciar sesión con credenciales inválidas
+- **Entrada**: email con formato válido y contraseña informada, pero credenciales incorrectas
+- **Resultado esperado**: la API rechaza la autenticación
+- **Status esperado**: `401`
+- **Resultado real**: `401`
+- **Mensaje**: `"Las credenciales proporcionadas son incorrectas."`
+- **Estado**: PASS ✅
+
+### 03-Login-Admin.yml
+
+Objetivo: autenticar al usuario Admin y obtener el token utilizado por las siguientes requests.
 
 Método y endpoint:
 
-POST {{baseUrl}}/api/login
-Headers
-Content-Type: application/json
-Accept: application/json
-Payload
-{
-  "email": "tae@testing.com",
-  "password": "Tae@2026"
-}
-Status esperado
-200 OK
-Respuesta relevante
+`POST {{baseUrl}}/login`
+
+Headers:
+
+- `Content-Type: application/json`
+- `Accept: application/json`
+
+Status esperado:
+
+`200 OK`
+
+Respuesta relevante:
+
+```json
 {
   "access_token": "...",
   "token_type": "Bearer"
 }
+```
 
-Post Response Script
+Post Response Script:
 
-El token se almacena automáticamente en el Environment QA:
-
+```javascript
 if (res.status === 200 && res.body?.access_token) {
     bru.setEnvVar("token", res.body.access_token);
     console.log("Token guardado correctamente");
 }
+```
+
+### 04-Login-Vendedor.yml
+
+Objetivo: autenticar al usuario Vendedor y guardar el token utilizado en las pruebas de autorización.
+
+Método y endpoint:
+
+`POST {{baseUrl}}/login`
+
+Headers:
+
+- `Content-Type: application/json`
+- `Accept: application/json`
+
+Status esperado:
+
+`200 OK`
+
+Validaciones principales:
+
+- Se retorna `access_token`.
+- `token_type` es `"Bearer"`.
+- El usuario posee rol `"Vendedor"`.
+- Se declaran los permisos `clientes.view`, `clientes.create` y `clientes.edit`.
+- No se declara el permiso `clientes.delete`.
+
+El token se guarda dinámicamente en `sellerToken`.
+
 
 ## 3. Clientes – Happy Path
 
@@ -78,13 +136,41 @@ Delete Cliente
 Get Cliente Eliminado
 ```
 
+01 – Consultar Lista de Clientes
+
+Objetivo: comprobar que un usuario autenticado puede recuperar el listado paginado de clientes.
+
+Método y endpoint:
+
+`GET {{baseUrl}}/clients?sort_direction=asc`
+
+Headers:
+
+- `Authorization: Bearer {{token}}`
+- `Accept: application/json`
+
+Payload:
+
+No requiere body.
+
+Status esperado:
+
+`200 OK`
+
+Validaciones principales:
+
+- La respuesta contiene la propiedad `data`.
+- `data` es un array.
+- La respuesta incluye información de paginación en `meta`.
+- `meta.current_page` y `meta.total` son valores numéricos.
+
 02 – Crear Cliente
 
 Objetivo: comprobar que la API permite crear un cliente con datos válidos.
 
 Método y endpoint:
 
-POST {{baseUrl}}/api/clients
+POST {{baseUrl}}/clients
 Headers
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -141,7 +227,7 @@ Objetivo: comprobar que el cliente recién creado puede recuperarse mediante su 
 
 Método y endpoint:
 
-GET {{baseUrl}}/api/clients/{{clienteId}}
+GET {{baseUrl}}/clients/{{clienteId}}
 Headers
 Authorization: Bearer {{token}}
 Accept: application/json
@@ -169,7 +255,7 @@ Objetivo: comprobar que un cliente existente puede ser modificado.
 
 Método y endpoint:
 
-PUT {{baseUrl}}/api/clients/{{clienteId}}
+PUT {{baseUrl}}/clients/{{clienteId}}
 Headers
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -217,7 +303,7 @@ Objetivo: comprobar que un cliente existente puede ser eliminado.
 
 Método y endpoint:
 
-DELETE {{baseUrl}}/api/clients/{{clienteId}}
+DELETE {{baseUrl}}/clients/{{clienteId}}
 Headers
 Authorization: Bearer {{token}}
 Accept: application/json
@@ -239,7 +325,7 @@ Objetivo: comprobar que el cliente eliminado ya no puede recuperarse.
 
 Método y endpoint:
 
-GET {{baseUrl}}/api/clients/{{clienteId}}
+GET {{baseUrl}}/clients/{{clienteId}}
 Headers
 Authorization: Bearer {{token}}
 Accept: application/json
@@ -292,13 +378,16 @@ Accept: application/json
 
 ## 6. Variables utilizadas
 
-|Variable|	Descripción	|Origen|
-|--------|--------------|------|
-|``baseUrl``|URL base del backend|	Environment QA|
-|``token``	|Token de autenticación	|Response del Login|
-|``clienteId``	|ID del cliente utilizado en el CRUD	|Response de Create Cliente|
-|``sellerToken``|Token de autenticación del usuario Vendedor|Response del Login Vendedor|
-|``sellerClienteId``|ID del cliente utilizado en las pruebas del Vendedor|Response de Create Cliente del Vendedor|
+| Variable | Descripción | Origen |
+|---|---|---|
+| ``baseUrl`` | URL base del backend: `https://back-imcoarca.leonardojose.dev/api` | Environment QA |
+| ``token`` | Token de autenticación del usuario Admin | Response del Login Admin |
+| ``clienteId`` | ID del cliente utilizado en el CRUD del Happy Path | Response de Create Cliente |
+| ``clienteCuitInvalidoId`` | ID del cliente creado por la API durante la prueba de CUIT inválido, utilizado para cleanup | Response de `03-Create-CUIT-Invalido` cuando retorna `201` |
+| ``clienteDuplicadoId`` | ID del cliente base utilizado en la prueba de duplicidad | Response de `07-Setup-Cliente-Duplicado` |
+| ``clienteDuplicadoSegundoId`` | ID del segundo cliente creado al probar duplicidad | Response de `08-Create-Cliente-Duplicado` cuando retorna `201` |
+| ``sellerToken`` | Token de autenticación del usuario Vendedor | Response del Login Vendedor |
+| ``sellerClienteId`` | ID del cliente utilizado en las pruebas del Vendedor | Response de Create Cliente del Vendedor |
 
 ---
 
@@ -310,15 +399,25 @@ Accept: application/json
 | AU-02 | `02-Login-Datos-Invalidos.yml` | Login con credenciales inválidas | Credenciales completas pero incorrectas | `401` | `401` | PASS ✅ |
 | AU-03 | `03-Login-Admin.yml` | Login Admin | Credenciales válidas | `200` | `200` | PASS ✅ |
 | AU-04 | `04-Login-Vendedor.yml` | Login Vendedor | Credenciales válidas | `200` | `200` | PASS ✅ |
-| CN-01 | `01-Create-Sin-Nombre.yml` | Crear cliente sin nombre | `name = ""` | `422` | `422` | PASS ✅ |
-| CN-02 | `02-Create-Sin-CUIT.yml` | Crear cliente sin CUIT | `cuit = ""` | `422` | `422` | PASS ✅ |
+| HP-01 | `01-Get-Lista-Clientes.yml` | Consultar listado de clientes | `GET /api/clients?sort_direction=asc` | `200` | `200` | PASS ✅ |
+| HP-02 | `02-Create-Cliente.yml` | Crear cliente válido | Payload válido | `201` | `201` | PASS ✅ |
+| HP-03 | `03-Get-Cliente.yml` | Consultar cliente creado | `GET /api/clients/{{clienteId}}` | `200` | `200` | PASS ✅ |
+| HP-04 | `04-Update-Cliente.yml` | Actualizar cliente | Payload válido | `200` | `200` | PASS ✅ |
+| HP-05 | `05-Delete-Cliente.yml` | Eliminar cliente | `DELETE /api/clients/{{clienteId}}` | `204` | `204` | PASS ✅ |
+| HP-06 | `06-Get-Cliente-Eliminado.yml` | Verificar cliente eliminado | `GET /api/clients/{{clienteId}}` | `404` | `404` | PASS ✅ |
+| CN-01 | `01-Create-sin-nombre.yml` | Crear cliente sin nombre | `name = ""` | `422` | `422` | PASS ✅ |
+| CN-02 | `02-Create-sin-CUIT.yml` | Crear cliente sin CUIT | `cuit = ""` | `422` | `422` | PASS ✅ |
 | CN-03 | `03-Create-CUIT-Invalido.yml` | Crear cliente con CUIT inválido | `cuit = "ABC123"` | `422` | `201` | FAIL ❌ |
-| CN-04 | `04-Create-Email-Invalido.yml` | Crear cliente con email inválido | `email = "correo-invalido"` | `422` | `422` | PASS ✅ |
-| CN-05 | `05-Create-Tipo-Dato-Invalido.yml` | Crear cliente con tipo de dato inválido | `name = 12345` | `422` | `422` | PASS ✅ |
-| CN-06 | `06-Create-Cliente-Duplicado.yml` | Crear cliente duplicado | Mismo `name` y mismo `cuit` que un cliente existente | `422` | `201` | FAIL ❌ |
-| CN-07 | `07-Get-Cliente-Inexistente.yml` | Consultar cliente inexistente | `GET /api/clients/99999999` | `404` | `404` | PASS ✅ |
-| CN-08 | `08-Update-Cliente-Inexistente.yml` | Actualizar cliente inexistente | `PUT /api/clients/99999999` | `404` | `404` | PASS ✅ |
-| CN-09 | `09-Eliminar-Cliente-Inexistente.yml` | Eliminar cliente inexistente | `DELETE /api/clients/99999999` | `404` | `404` | PASS ✅ |
+| CN-04 | `04-Cleanup-CUIT-invalido.yml` | Eliminar registro creado por el caso de CUIT inválido | `DELETE /api/clients/{{clienteCuitInvalidoId}}` | `204` | `204` | PASS ✅ |
+| CN-05 | `05-Create-Email-Invalido.yml` | Crear cliente con email inválido | `email = "correo-invalido"` | `422` | `422` | PASS ✅ |
+| CN-06 | `06-Create-Tipo-Dato-Invalido.yml` | Crear cliente con tipo de dato inválido | `name = 12345` | `422` | `422` | PASS ✅ |
+| CN-07 | `07-Setup-Cliente-Duplicado.yml` | Crear cliente base para prueba de duplicidad | Payload válido | `201` | `201` | PASS ✅ |
+| CN-08 | `08-Create-Cliente-Duplicado.yml` | Crear cliente duplicado | Mismo `name` y mismo `cuit` que el cliente base | `422` | `201` | FAIL ❌ |
+| CN-09 | `09-Cleanup-Cliente-Duplicado-Original.yml` | Eliminar cliente base de la prueba | `DELETE /api/clients/{{clienteDuplicadoId}}` | `204` | `204` | PASS ✅ |
+| CN-10 | `10-Cleanup-Cliente-Duplicado-Copia.yml` | Eliminar copia creada durante la prueba | `DELETE /api/clients/{{clienteDuplicadoSegundoId}}` | `204` | `204` | PASS ✅ |
+| CN-11 | `11-Get-Cliente-Inexistente.yml` | Consultar cliente inexistente | `GET /api/clients/99999999` | `404` | `404` | PASS ✅ |
+| CN-12 | `12-Update-Cliente-Inexistente.yml` | Actualizar cliente inexistente | `PUT /api/clients/99999999` | `404` | `404` | PASS ✅ |
+| CN-13 | `13-Eliminar-Cliente-Inexistente.yml` | Eliminar cliente inexistente | `DELETE /api/clients/99999999` | `404` | `404` | PASS ✅ |
 | SE-01 | `01-Get-Sin-Token.yml` | Consultar clientes sin token | Sin header `Authorization` | `401` | `401` | PASS ✅ |
 | SE-02 | `02-Get-Token-Invalido.yml` | Consultar clientes con token inválido | `Bearer token_invalido_12345` | `401` | `401` | PASS ✅ |
 | AV-01 | `01-Get-Clientes.yml` | Consultar clientes como Vendedor | `Bearer {{sellerToken}}` | `200` | `200` | PASS ✅ |
@@ -331,7 +430,7 @@ Accept: application/json
 
 ## Casos negativos - Clientes
 
-### 01-Create-Sin-Nombre.yml
+### 01-Create-sin-nombre.yml
 
 - **Caso**: Crear cliente sin nombre
 - **Entrada**: `name = ""`
@@ -341,7 +440,7 @@ Accept: application/json
 - **Mensaje**: `"The name field is required."`
 - **Estado**: PASS ✅
 
-### 02-Create-Sin-CUIT.yml
+### 02-Create-sin-CUIT.yml
 
 - **Caso**: Crear cliente sin CUIT
 - **Entrada**: `cuit = ""`
@@ -361,8 +460,21 @@ Accept: application/json
 - **Mensaje**: la API permite crear el cliente con un CUIT de formato inválido
 - **Estado**: FAIL ❌
 - **Hallazgo**: la API permite crear clientes con CUIT de formato inválido
+- **Post Response**: si la API responde `201`, se guarda `clienteCuitInvalidoId` para eliminar el registro en el paso siguiente
 
-### 04-Create-Email-Invalido.yml
+### 04-Cleanup-CUIT-invalido.yml
+
+- **Caso**: Eliminar el cliente creado durante la prueba de CUIT inválido
+- **Precondición**: `03-Create-CUIT-Invalido` respondió `201` y guardó `clienteCuitInvalidoId`
+- **Entrada**: `DELETE /api/clients/{{clienteCuitInvalidoId}}`
+- **Resultado esperado**: el registro de prueba se elimina correctamente
+- **Status esperado**: `204`
+- **Resultado real**: `204`
+- **Mensaje**: no se espera body (`204 No Content`)
+- **Estado**: PASS ✅
+- **Objetivo del cleanup**: evitar que un caso negativo deje datos residuales en la base de datos
+
+### 05-Create-Email-Invalido.yml
 
 - **Caso**: Crear cliente con email inválido
 - **Entrada**: `email = "correo-invalido"`
@@ -372,7 +484,7 @@ Accept: application/json
 - **Mensaje**: `"Uno o más emails no tienen un formato válido."`
 - **Estado**: PASS ✅
 
-### 05-Create-Tipo-Dato-Invalido.yml
+### 06-Create-Tipo-Dato-Invalido.yml
 
 - **Caso**: Crear cliente con tipo de dato inválido
 - **Entrada**: `name = 12345`
@@ -382,46 +494,80 @@ Accept: application/json
 - **Mensaje**: `"The name field must be a string."`
 - **Estado**: PASS ✅
 
-### 06-Create-Cliente-Duplicado.yml
+### 07-Setup-Cliente-Duplicado.yml
+
+- **Caso**: Crear el cliente base necesario para probar duplicidad
+- **Entrada**: `name = "Cliente Duplicado Bruno"`, `cuit = "20-87654321-0"`
+- **Resultado esperado**: el cliente base se crea correctamente
+- **Status esperado**: `201`
+- **Resultado real**: `201`
+- **Mensaje**: la API retorna el cliente creado dentro de `data`
+- **Estado**: PASS ✅
+- **Post Response**: se guarda dinámicamente `clienteDuplicadoId`
+- **Objetivo del setup**: asegurar que la prueba de duplicidad sea reproducible y no dependa del cliente utilizado en el Happy Path
+
+### 08-Create-Cliente-Duplicado.yml
 
 - **Caso**: Crear cliente duplicado
-- **Precondición**: existe previamente un cliente con `name = "Cliente API Bruno Prueba"` y `cuit = "20-12345678-6"`
+- **Precondición**: existe el cliente creado en `07-Setup-Cliente-Duplicado` con `name = "Cliente Duplicado Bruno"` y `cuit = "20-87654321-0"`
 - **Criterio de duplicidad**: para este caso se considera duplicado un registro con el mismo `name` y el mismo `cuit` que un cliente previamente registrado
-- **Entrada**: `name = "Cliente API Bruno Prueba"`, `cuit = "20-12345678-6"`
+- **Entrada**: `name = "Cliente Duplicado Bruno"`, `cuit = "20-87654321-0"`
 - **Resultado esperado**: la API rechaza la creación del cliente duplicado
 - **Status esperado**: `422`
 - **Resultado real**: `201 Created`
 - **Estado**: FAIL ❌
-- **Hallazgo**: la API permite crear nuevamente un cliente con el mismo nombre y CUIT, falta validación de duplicidad o unicidad.
+- **Hallazgo**: la API permite crear nuevamente un cliente con el mismo nombre y CUIT; se observa una posible ausencia de validación de duplicidad o unicidad
+- **Post Response**: como la API crea un segundo registro, se guarda `clienteDuplicadoSegundoId` para su cleanup
 
-### 07-Get-Cliente-Inexistente.yml
+### 09-Cleanup-Cliente-Duplicado-Original.yml
+
+- **Caso**: Eliminar el cliente base utilizado en la prueba de duplicidad
+- **Entrada**: `DELETE /api/clients/{{clienteDuplicadoId}}`
+- **Resultado esperado**: el cliente base se elimina correctamente
+- **Status esperado**: `204`
+- **Resultado real**: `204`
+- **Mensaje**: no se espera body (`204 No Content`)
+- **Estado**: PASS ✅
+
+### 10-Cleanup-Cliente-Duplicado-Copia.yml
+
+- **Caso**: Eliminar el segundo cliente creado durante la prueba de duplicidad
+- **Entrada**: `DELETE /api/clients/{{clienteDuplicadoSegundoId}}`
+- **Resultado esperado**: la copia creada durante la prueba se elimina correctamente
+- **Status esperado**: `204`
+- **Resultado real**: `204`
+- **Mensaje**: no se espera body (`204 No Content`)
+- **Estado**: PASS ✅
+- **Objetivo del cleanup**: dejar la base de datos en un estado consistente después de ejecutar el caso negativo
+
+### 11-Get-Cliente-Inexistente.yml
 
 - **Caso**: Consultar cliente inexistente
 - **Entrada**: `GET /api/clients/99999999`
 - **Resultado esperado**: la API indica que el cliente no existe
 - **Status esperado**: `404`
 - **Resultado real**: `404`
-- **Mensaje**: `"No query results for model [App\\Models\\Client] 99999999"`
+- **Mensaje**: `"No query results for model [App\Models\Client] 99999999"`
 - **Estado**: PASS ✅
 
-### 08-Update-Cliente-Inexistente.yml
+### 12-Update-Cliente-Inexistente.yml
 
 - **Caso**: Actualizar cliente inexistente
 - **Entrada**: `PUT /api/clients/99999999` con payload válido
 - **Resultado esperado**: la API rechaza la actualización porque el cliente no existe
-- **Status esperado**: `404` (no se espera un `422`, porque el payload es válido; la falla debería producirse por el recurso inexistente)
+- **Status esperado**: `404`
 - **Resultado real**: `404`
-- **Mensaje**: `"No query results for model [App\\Models\\Client] 99999999"`
+- **Mensaje**: `"No query results for model [App\Models\Client] 99999999"`
 - **Estado**: PASS ✅
 
-### 09-Eliminar-Cliente-Inexistente.yml
+### 13-Eliminar-Cliente-Inexistente.yml
 
 - **Caso**: Eliminar cliente inexistente
 - **Entrada**: `DELETE /api/clients/99999999`
 - **Resultado esperado**: la API rechaza la eliminación porque el cliente no existe
 - **Status esperado**: `404`
 - **Resultado real**: `404`
-- **Mensaje**: `"No query results for model [App\\Models\\Client] 99999999"`
+- **Mensaje**: `"No query results for model [App\Models\Client] 99999999"`
 - **Estado**: PASS ✅
 
 ---
@@ -537,3 +683,27 @@ Accept: application/json
 - **Resultado real**: `404`
 - **Mensaje**: `"No query results for model [App\\Models\\Client] ..."`
 - **Estado**: PASS ✅
+
+
+---
+
+## Resultado de la ejecución completa
+
+La ejecución completa de la colección produjo el siguiente resumen:
+
+| Métrica | Resultado |
+|---|---:|
+| Requests | `30` |
+| Requests PASS | `27` |
+| Requests FAIL | `3` |
+| Tests | `92/98` |
+| Assertions | `95/98` |
+| Estado global | FAIL ❌ |
+
+El estado global `FAIL` es consistente con los tres hallazgos detectados:
+
+1. **CUIT inválido**: la API acepta `cuit = "ABC123"` y responde `201 Created` cuando se esperaba `422`.
+2. **Cliente duplicado**: la API permite crear un segundo registro con el mismo `name` y `cuit` y responde `201 Created` cuando se esperaba `422`.
+3. **Autorización del Vendedor**: aunque el rol Vendedor no declara el permiso `clientes.delete`, el endpoint permite eliminar un cliente y responde `204 No Content` cuando se esperaba `403`.
+
+Los pasos de cleanup posteriores a los casos de CUIT inválido y duplicidad respondieron `204`, por lo que los registros generados durante esas pruebas se eliminan correctamente y la colección puede ejecutarse nuevamente sin dejar esos datos residuales.
