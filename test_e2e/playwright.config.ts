@@ -9,8 +9,12 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: [["allure-playwright"]],
+  workers: process.env.WORKERS ? parseInt(process.env.WORKERS) : (process.env.CI ? 1 : 2),
+  reporter: [
+    ["list"],
+    ["allure-playwright"]
+  ],
+
 
   use: {
     baseURL: "https://imcoarca.leonardojose.dev/",

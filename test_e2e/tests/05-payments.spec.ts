@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import * as allure from "allure-js-commons";
 import { LoginPage } from "../pages/LoginPage";
 import { PaymentPage } from "../pages/PaymentPage";
 import { DataHelper } from "../utils/DataHelper";
@@ -156,6 +157,11 @@ test.describe("Payments Module", () => {
   });
 
   test("Create, Search and Delete Payment", async () => {
+    await allure.epic("Gestión Comercial y Operaciones");
+    await allure.feature("Módulo de Cobranzas");
+    await allure.story("Ciclo de vida de cobranza: registro de pago, persistencia y eliminación");
+    await allure.severity("critical");
+
     await test.step("Navigate to payment module", async () => {
       await paymentPage.navigate();
 

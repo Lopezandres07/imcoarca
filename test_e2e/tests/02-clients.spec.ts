@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import * as allure from "allure-js-commons";
 import { LoginPage } from "../pages/LoginPage";
 import { ClientPage, type ClientData } from "../pages/ClientPage";
 import { DataHelper } from "../utils/DataHelper";
@@ -36,6 +37,11 @@ test.describe("Clients Module", () => {
   });
 
   test("Create, verify and delete client", async () => {
+    await allure.epic("Gestión de Entidades");
+    await allure.feature("Módulo de Clientes");
+    await allure.story("Ciclo de vida de cliente: creación, persistencia y eliminación");
+    await allure.severity("critical");
+
     await test.step("Navigate to Clients module", async () => {
       await clientPage.navigate();
 

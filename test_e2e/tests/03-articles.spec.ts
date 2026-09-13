@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import * as allure from "allure-js-commons";
 import { LoginPage } from "../pages/LoginPage";
 import { ArticlePage, type ArticleData } from "../pages/ArticlePage";
 import { DataHelper } from "../utils/DataHelper";
@@ -43,6 +44,11 @@ test.describe("Articles Module", () => {
   });
 
   test("Create,verify and delete article", async () => {
+    await allure.epic("Gestión de Inventario");
+    await allure.feature("Módulo de Artículos");
+    await allure.story("Ciclo de vida de artículo: creación, persistencia y eliminación");
+    await allure.severity("critical");
+
     await test.step("Navigate to Articles module", async () => {
       await articlePage.navigate();
 

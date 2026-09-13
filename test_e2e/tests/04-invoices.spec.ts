@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import * as allure from "allure-js-commons";
 import { LoginPage } from "../pages/LoginPage";
 import { InvoicePage } from "../pages/InvoicePage";
 import { DataHelper } from "../utils/DataHelper";
@@ -89,6 +90,11 @@ test.describe("Invoices Module", () => {
   });
 
   test("Create, Search and Delete Invoice", async () => {
+    await allure.epic("Gestión Comercial y Operaciones");
+    await allure.feature("Módulo de Facturación");
+    await allure.story("Ciclo de vida de factura: emisión, persistencia y eliminación");
+    await allure.severity("critical");
+
     await test.step("Navigate to invoice module", async () => {
       await invoicePage.navigate();
 
